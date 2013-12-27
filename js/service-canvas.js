@@ -1,6 +1,6 @@
 /* Canvas drawing service */
 
-angular.module('Plasma.canvas', [])
+angular.module('Icebreakr.canvas', [])
     .factory('canvasUtility', function(colorUtility) {
         var mainPixSize = 2;
         return {

@@ -1,6 +1,6 @@
 /* Game logic service */
 
-angular.module('Plasma.game', [])
+angular.module('Icebreakr.game', [])
     .factory('gameUtility', function(colorUtility) {
         var randomIntRange = function(min,max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;

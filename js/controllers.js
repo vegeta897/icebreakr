@@ -1,6 +1,6 @@
 /* Controllers */
 
-angular.module('Plasma.controllers', [])
+angular.module('Icebreakr.controllers', [])
 	.controller('Main', ['$scope', '$timeout', '$filter', 'localStorageService', 'colorUtility', 'canvasUtility', 'gameUtility', function($scope, $timeout, $filter, localStorageService, colorUtility, canvasUtility, gameUtility) {
         
         $scope.zoomPosition = [120,120]; // Tracking zoom window position
@@ -22,7 +22,7 @@ angular.module('Plasma.controllers', [])
         $scope.logOut = function() { auth.logout(); };
 
         // Create a reference to the pixel data for our canvas
-        var fireRef = new Firebase('https://plasma-game.firebaseio.com/map1');
+        var fireRef = new Firebase('https://icebreakr.firebaseio.com/map1');
         // Create a reference to the auth service for our data
         var auth = new FirebaseSimpleLogin(fireRef, function(error, user) {
             $timeout(function() {

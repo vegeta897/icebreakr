@@ -1,7 +1,7 @@
 <div class="navbar navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
-            <h1><a href="#"><span class="plasma-color">Plasma</span></a></h1>
+            <h1><a href="#"><span class="icebreakr-color">Icebreakr</span></a></h1>
         </div>
         <div class="navbar-collapse collapse">
             <p class="navbar-right" ng-show="user">Welcome back, <strong class="text-info">{{ user.email }}</strong> &mdash; <a href="#" ng-click="logOut()">Log out</a></p>
@@ -43,7 +43,7 @@
 <div id="uiContainer" ng-show="userInit" class="container">
     <div class="row">
         <div id="info" class="col-xs-4">
-            <h2>Welcome to <span class="plasma-color">Plasma</span>!</h2>
+            <h2>Welcome to <span class="icebreakr-color">Icebreakr</span>!</h2>
             <p ng-repeat="paragraph in helpText | nlToArray">{{ paragraph }}</p>
             <button ng-show="newUser" class="btn btn-success" ng-click="addBrain()">Add Brain Cell</button>
             <button ng-show="user.id == 1" class="btn btn-danger" ng-click="resetUser()">Reset</button>

@@ -1,6 +1,6 @@
 /* Color gen service */
 
-angular.module('Plasma.colors', [])
+angular.module('Icebreakr.colors', [])
     .factory('colorUtility', function() {
         var hsvToHex = function(hsv) {
             var h = hsv.hue, s = hsv.sat, v = hsv.val, rgb, i, data = [];

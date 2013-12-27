@@ -1,6 +1,6 @@
 /* Directives and Filters */
 
-angular.module('Plasma.directives', [])
+angular.module('Icebreakr.directives', [])
     .directive('loginForm', function() {
         return {
             restrict: 'A',
