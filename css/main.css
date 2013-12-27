@@ -32,7 +32,7 @@ canvas { position: relative; }
 
 .hard-left { padding-left: 0; } .hard-right { padding-right: 0; }
 
-#uiContainer {  }
+#uiContainer { margin-top: -20px; }
 
 
 #info h2 { color: #c8c8c8; font-size: 20px }
@@ -66,15 +66,15 @@ button .glyphicon {
     padding: 1px 5px 2px;
 }
 
-#lifeform table { background: transparent; }
-#lifeform td { padding: 4px 6px 0 0; border: none; color: #999; }
+#uiContainer table.unstyled { background: transparent; }
+#uiContainer table.unstyled  td { padding: 2px 6px 0 0; border: none; color: #999; }
 strong { color: #ccc; }
 
 
 /* --- Bootstrap Overrides --- */
 
 p { color: #999; }
-h2 { color: #aaa; font-size: 18px; line-height: 22px; }
+h2 { color: #aaa; font-size: 18px; line-height: 22px; margin-top: 10px; }
 h2 small { font-size: 14px; margin-left: 12px; }
 .well { padding: 8px; background-color: #24272b; border-color: #1b1e21; }
 .progress { height: 12px; margin-bottom: 12px; margin-top: 4px; }

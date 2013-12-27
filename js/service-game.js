@@ -139,50 +139,8 @@ angular.module('Icebreakr.game', [])
                 var text = '';
                 switch(parseInt(step)) {
                     case 0:
-                        text = 'To begin, add a Brain Cell to your inventory.';
-                        break;
-                    case 1:
-                        text = 'Great! Now click the [+] button, and place it somewhere on the map.';
-                        break;
-                    case 2:
-                        text = 'Woo! There\'s your brain cell.\n' +
-                            'The brain cell is the center of your new life form.\n' +
-                            'Any cell you place from now on must connect to either your brain, ' +
-                            'or another cell you placed.\n' +
-                            'Click on your brain cell to view its properties.';
-                        break;
-                    case 3:
-                        text = 'When you select one of your cells, its properties are shown.\n' +
-                            'You can see the color, cell type, and the cell\'s contents.\n' +
-                            'Certain cells produce certain contents at certain rates.\n' +
-                            'When a cell has something to harvest, you\'ll see little dots on the cell.\n' +
-                            'Click the buttons to transfer the contents to your inventory.';
-                        break;
-                    case 4:
-                        text = 'Excellent! Now you can place these new cells around your brain cell.\n' +
-                            'Somatic cells are the most basic type of cell, and can only be placed ' +
-                            'next to special cells like the brain.';
-                        break;
-                    case 5:
-                        text = 'Great, you\'re up to a 5 cell organism!\n' +
-                            'Each cell you place makes some time pass. This time span is called a heartbeat.\n' +
-                            'As heartbeats increment, your cells produce new contents to harvest.\n' +
-                            'Click on your brain cell and see what it has produced!';
-                        break;
-                    case 6:
-                        text = 'Ooh, an energy cell!\n' +
-                            'Somatic cells lose health every heartbeat. The older they are, the more ' +
-                            'health they lose after every heartbeat. When a cell reaches 0 health, it dies.\n' +
-                            'You can see how much a cell will decay in the next heartbeat by selecting it.\n' +
-                            'Energy cells provide life to your cells after every heartbeat to combat this.\n' +
-                            'The "reach" of an energy cell\'s sustenance is 2 cells, ' +
-                            'which you can see when placing the cell.\n' +
-                            'Place your energy cell now. It must be next to at least one of your other cells.';
-                        break;
-                    case 7:
-                        text = 'Now select the energy cell to see some information about it.\n' +
-                            'The energy cell\'s output per heartbeat is displayed. This output decreases ' +
-                            'gradually as the cell ages. When it reaches 0, the cell becomes somatic.\n';
+                        text = 'Tap on the ice for points.\n' +
+                            'Be careful where you tap. Breaking the ice will result in a severe penalty!';
                         break;
                 }
                 return text;

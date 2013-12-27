@@ -4,7 +4,7 @@
             <h1><a href="#"><span class="icebreakr-color">Icebreakr</span></a></h1>
         </div>
         <div class="navbar-collapse collapse">
-            <p class="navbar-right" ng-show="user">Welcome back, <strong class="text-info">{{ user.email }}</strong> &mdash; <a href="#" ng-click="logOut()">Log out</a></p>
+            <p class="navbar-right" ng-show="user">Welcome back, <strong class="text-info">{{ user.nick }}</strong> &mdash; <a href="#" ng-click="logOut()">Log out</a></p>
             <form ng-show="!user && authStatus" class="navbar-form navbar-right" data-login-form="{{ authStatus }}" id="loginForm" ng-disabled="authStatus=='logging'" ng-submit="authenticate()">
                 <div class="form-group">
                     <input ng-model="loginEmail" ng-disabled="authStatus=='logging'" id="inputLoginUser" type="email" placeholder="user@example.com" class="form-control">
@@ -18,11 +18,11 @@
     </div>
 </div>
 <div id="mainContainer" class="container">
-    <canvas id="mainCanvas" width="1200" height="840"> <!-- Main canvas -->
+    <canvas id="mainCanvas" width="1200" height="750"> <!-- Main canvas -->
         Your browser doesn't support canvases. <a href="http://www.google.com/chrome">Get a better one.</a>
     </canvas>
-    <canvas id="mainPingCanvas" width="1200" height="840"></canvas> <!-- Ping canvas -->
-    <canvas id="mainHighlightCanvas" width="1200" height="840"></canvas> <!-- Main highlight canvas -->
+    <canvas id="mainPingCanvas" width="1200" height="750"></canvas> <!-- Ping canvas -->
+    <canvas id="mainHighlightCanvas" width="1200" height="750"></canvas> <!-- Main highlight canvas -->
     <div class="col-xs-1 text-right hard-right pull-right coords">
         {{ overPixel[0] }} <span class="text-muted">,</span> {{ overPixel[1] }}
     </div>
@@ -32,72 +32,23 @@
         <div id="info" class="col-xs-4">
             <h2>Welcome to <span class="icebreakr-color">Icebreakr</span>!</h2>
             <p ng-repeat="paragraph in helpText | nlToArray">{{ paragraph }}</p>
-            <button ng-show="newUser" class="btn btn-success" ng-click="addBrain()">Add Brain Cell</button>
-            <button ng-show="user.id == 1" class="btn btn-danger" ng-click="resetUser()">Reset</button>
+            <button ng-show="user.id == 4" class="btn btn-danger" ng-click="resetUser()">Reset</button>
         </div>
-        <div id="inventory" class="col-xs-3">
-            <h2>Inventory</h2>
-            <ul class="list-unstyled">
-                <li class="text-muted" ng-hide="inventory">No items</li>
-                <li ng-repeat="item in inventory">
-                    <button type="button" ng-disabled="item.adding" ng-click="addCell(item)" 
-                            class="btn btn-xs btn-default"><span class="glyphicon glyphicon-plus"></span>
-                        <span ng-init="style={background: '#'+item.color.hex}" ng-style="style" class="item-color"></span>
-                        {{ item.type | itemDisplay }}
-                    </button>
-                </li>
-            </ul>
-        </div>
-        <div id="cellInfoSpacer" ng-hide="selectedCell" class="col-xs-3"></div>
-        <div id="cellInfo" ng-show="selectedCell" class="col-xs-3">
-            <h2>Cell Info<small>{{ selectedCell.ownerNick }}</small></h2>
-            <p><span ng-style="{background: '#'+selectedCell.color.hex}" class="item-color"></span>
-                {{ selectedCell.type | itemDisplay }}&emsp;
-                <span class="text-muted">({{ selectedCell.grid | grid }})</span>&emsp;
-                <span class="text-muted">Age</span>&emsp;{{ heartbeats - selectedCell.created }}
-            </p>
-            <div ng-show="selectedCell.type == 'somatic' || selectedCell.type == 'germ'" class="row">
-                <div class="col-xs-4 hard-right">
-                    <p><span class="text-muted">Health</span>&emsp;{{ selectedCell.life }}</p>
-                </div>
-                <div class="col-xs-8">
-                    <div class="progress">
-                        <div class="progress-bar" ng-style="{width: selectedCell.life+'%'}"></div>
-                    </div>
-                </div>
-            </div>
-            <div ng-show="selectedCell.type == 'somatic' || selectedCell.type == 'germ'" class="row attach-top">
-                <div class="col-xs-12"><p>
-                    <span class="text-muted">Decay</span>&emsp;
-                    {{ (heartbeats - selectedCell.created)/2 | number:0 }} -
-                    {{ (heartbeats - selectedCell.created)*1.5 | number:0 }}
-                </p></div>
-            </div>
-            <p ng-show="selectedCell.output">
-                <span class="text-muted">Output</span>
-                &emsp;{{ selectedCell.output }}&nbsp;&nbsp;<small class="text-muted">health</small>
-            </p>
-            <div ng-show="selectedCell.contents.length > 0" class="well">
-                <h3>Contents</h3>
-                <ul class="list-unstyled">
-                    <li ng-repeat="item in selectedCell.contents">
-                        <button ng-show="selectedCell.owner == user.id" type="button" ng-click="harvestItem($index,item)" class="btn btn-xs btn-default">
-                            <span class="glyphicon glyphicon-arrow-left"></span>
-                            {{ item | itemDisplay }}
-                        </button>
-                        
-                    </li>
-                </ul>
+        <div id="userStats" class="col-xs-2">
+            <h2>{{ user.nick }}'s Stats</h2>
+            <div class="col-xs-10 hard-left">
+                <table class="table unstyled">
+                    <tr><td>Score</td><td class="text-right"><strong>{{ user.score }}</strong></td></tr>
+                    <tr><td>Taps</td><td class="text-right"><strong>{{ user.taps }}</strong></td></tr>
+                    <tr><td>Breaks</td><td class="text-right"><strong>{{ user.breaks }}</strong></td></tr>
+                </table>
             </div>
         </div>
-        <div id="lifeform" class="col-xs-2">
-            <h2>Lifeform</h2>
-            <table class="table">
-                <tr><td>Cells</td><td><strong>{{ userCells }}</strong></td></tr>
-                <tr><td>Heartbeats</td><td><strong>{{ heartbeats }}</strong></td></tr>
-                <tr><td>Efficiency</td><td><strong>{{ userCells/heartbeats*100 | number:0 }}</strong>%</td></tr>
+        <div id="scoreboard" class="col-xs-2">
+            <h2>Scoreboard</h2>
+            <table class="table unstyled">
+                <tr ng-repeat="user in localUsers"><td>{{ $index+1 }}.</td><td>{{ user.nick }}</td><td class="text-right"><strong>{{ user.score }}</strong></td></tr>
             </table>
-            <button ng-show="user.id == 1" class="btn btn-warning" ng-click="waitOne()">Wait</button>
         </div>
     </div>
 </div>

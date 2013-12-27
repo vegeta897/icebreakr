@@ -7,8 +7,9 @@ angular.module('Icebreakr.controllers', [])
         $scope.authStatus = '';
         $scope.helpText = '';
         $scope.userTaps = 0;
+        $scope.localUsers = {};
         var mainPixSize = 3, keyPressed = false, keyUpped = true, mouseDown,
-            pinging = false, userID, fireUser, localPixels = {}, localUsers = {}, tutorialStep = 0;
+            pinging = false, userID, fireUser, localPixels = {}, tutorialStep = 0;
         
         // Authentication
         $scope.authenticate = function() {
@@ -30,11 +31,12 @@ angular.module('Icebreakr.controllers', [])
                             if(createdError) { console.log(createdError); } else {
                                 console.log('user created:',createdUser.id,createdUser.email);
                                 userID = createdUser.id;
-                                $scope.user = createdUser;
+                                $scope.user = {id: createdUser.id, email: createdUser.email, 
+                                    taps: 0, score: 0, breaks: 0, 
+                                    nick: createdUser.email.substr(0,createdUser.email.indexOf('@'))};
                                 fireRef.auth(createdUser.token, function() {
                                     fireUser = fireRef.child('users/'+userID);
-                                    fireUser.set({heartbeats: 0, new: 'true', 
-                                        nick: createdUser.email.substr(0,createdUser.email.indexOf('@'))}, 
+                                    fireUser.set($scope.user, 
                                         function() { initUser(); });
                                     $timeout(function() { $scope.authStatus = 'logged'; });
                                 });
@@ -69,13 +71,8 @@ angular.module('Icebreakr.controllers', [])
         var initUser = function() {
             fireUser.once('value', function(snapshot) {
                 $timeout(function() { 
-                    $scope.heartbeats = snapshot.val().heartbeats;
-                    $scope.brain = snapshot.val().brain;
-                    $scope.newUser = (snapshot.val()['new'] == 'true');
+                    $scope.user = snapshot.val();
                     $scope.userInit = true;
-                    if(!$scope.newUser) { return; }
-                    tutorialStep = -1;
-                    tutorial('next');
                 });
             });
         };
@@ -91,7 +88,7 @@ angular.module('Icebreakr.controllers', [])
         // Set up our canvas
         var mainCanvas = document.getElementById('mainCanvas');
         var mainContext = mainCanvas.getContext ? mainCanvas.getContext('2d') : null;
-        canvasUtility.fillCanvas(mainContext,'222222');
+        canvasUtility.fillCanvas(mainContext,'1f2022');
 
         // Prevent right-click on canvas
         jQuery('body').on('contextmenu', '#mainHighlightCanvas', function(e){ return false; });
@@ -127,15 +124,22 @@ angular.module('Icebreakr.controllers', [])
         mainHighCanvas.onselectstart = function() { return false; };
         
         $scope.resetUser = function() {
-            fireUser.set({heartbeats: 0, new: 'true', nick: 'Veggies'});
+            fireUser.set({taps: 0, score: 0, breaks: 0});
         };
         
         var onMouseDown = function(e) {
             e.preventDefault();
             // TODO: tap on the ice!
+            fireUser.child('taps').once('value', function(snap) { 
+                $scope.$apply(function() {
+                    $scope.user.taps = snap.val() + 1;
+                    $scope.user.score = $scope.user.taps - $scope.user.breaks * 30;
+                    fireUser.set($scope.user);
+                });
+            });
         };
 
-        var onMouseUp = function(e) { panMouseDown = false; };
+        var onMouseUp = function(e) { mouseDown = false; };
         
         // Check for mouse moving to new pixel
         var onMouseMove = function(e) {
@@ -183,6 +187,7 @@ angular.module('Icebreakr.controllers', [])
         jQuery(mainHighCanvas).mousemove(onMouseMove);
         jQuery(mainHighCanvas).mouseleave(onMouseOut);
         jQuery(mainHighCanvas).mousedown(onMouseDown);
+        jQuery(mainHighCanvas).mouseup(onMouseUp);
         jQuery(window).resize(alignCanvases); // Re-align canvases on window resize
         
         // When a cell is added/changed
@@ -200,15 +205,15 @@ angular.module('Icebreakr.controllers', [])
             delete localPixels[snapshot.name()];
             var coords = snapshot.name().split(":");
             $timeout(function(){ alignCanvases(); }, 200); // Realign canvases
-            canvasUtility.drawPixel(mainContext,'222222',coords,[1,1]);
+            canvasUtility.drawPixel(mainContext,'1f2022',coords,[1,1]);
         };
         // Firebase listeners
         fireRef.child('taps').on('child_added', drawPixel);
         fireRef.child('taps').on('child_changed', drawPixel);
         fireRef.child('taps').on('child_removed', clearPixel);
-        fireRef.child('users').on('child_added', function(snap) { localUsers[snap.name()] = snap.val(); });
-        fireRef.child('users').on('child_changed', function(snap) { localUsers[snap.name()] = snap.val(); });
-        fireRef.child('users').on('child_removed', function(snap) { delete localUsers[snap.name()]; });
+        fireRef.child('users').on('child_added', function(snap) { $scope.localUsers[snap.name()] = snap.val(); });
+        fireRef.child('users').on('child_changed', function(snap) { $scope.localUsers[snap.name()] = snap.val(); });
+        fireRef.child('users').on('child_removed', function(snap) { delete $scope.localUsers[snap.name()]; });
         fireRef.child('meta/pings').on('child_added', drawPing);
         fireRef.child('meta/pings').on('child_removed', hidePing);
         

@@ -7,7 +7,7 @@ angular.module('Icebreakr.canvas', [])
             fillCanvas: function(context,color) {
                 var method = color == 'erase' ? 'clearRect' : 'fillRect';
                 if(color != 'erase') { context.fillStyle = color.charAt(0) == 'r' ? color : '#' + color; }
-                context[method](0,0,1200,840);
+                context[method](0,0,1200,750);
             },
             drawPixel: function(context,color,coords,size) {
                 var method = color == 'erase' ? 'clearRect' : 'fillRect';
