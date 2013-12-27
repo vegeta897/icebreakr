@@ -178,10 +178,10 @@ angular.module('Icebreakr.controllers', [])
             // If the pixel location has changed
             if($scope.overPixel[0] != x || $scope.overPixel[1] != y) {
                 mainHighCanvas.style.cursor = 'default'; // Show cursor
-                dimPixel(); // Dim the previous pixel
-                var drawColor = 'rgba(255, 255, 255, 0.1)';
-                canvasUtility.drawPixel(mainHighContext, drawColor, // Highlight pixel underneath cursor
-                    $scope.overPixel, [1,1]);
+                //dimPixel(); // Dim the previous pixel
+                //var drawColor = 'rgba(255, 255, 255, 0.1)';
+                //canvasUtility.drawPixel(mainHighContext, drawColor, // Highlight pixel underneath cursor
+                //    $scope.overPixel, [1,1]);
                 $scope.$apply(function() { $scope.overPixel = [x,y]; });
             }
         };
@@ -191,7 +191,7 @@ angular.module('Icebreakr.controllers', [])
         };
         // When the mouse leaves the canvas
         var onMouseOut = function() {
-            dimPixel();
+            //dimPixel();
             $scope.$apply(function() { $scope.overPixel = ['-','-']; });
         };
         // Ping a pixel
@@ -220,11 +220,11 @@ angular.module('Icebreakr.controllers', [])
             localPixels[snap.name()] = snap.val();
             localPixels[snap.name()].grid = snap.name(); // Add grid and owner nickname properties
             var coords = snap.name().split(":");
-        //    canvasUtility.drawPixel(mainContext,snapshot.val().color.hex,coords,[1,1]);
+            canvasUtility.drawTap(mainContext,coords,snap.val().seed,1);
             if(!$scope.localUsers.hasOwnProperty('4')) { return; } // If users haven't been fetched yet
             $scope.eventLog.unshift({ user: $scope.localUsers[snap.val().lastUser].nick, action: 'tapped',
                 coords: coords[0] + ' , ' + coords[1], time: snap.val().lastTap });
-            if($scope.eventLog.length > 10) {
+            if($scope.eventLog.length > 10) { // Keep the event log to 10 messages max
                 $scope.eventLog.pop();
             }
         };
