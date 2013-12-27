@@ -32,7 +32,7 @@
         <div id="info" class="col-xs-4">
             <h2>Welcome to <span class="icebreakr-color">Icebreakr</span>!</h2>
             <p ng-repeat="paragraph in helpText | nlToArray">{{ paragraph }}</p>
-            <button ng-show="user.id == 4" class="btn btn-danger" ng-click="resetUser()">Reset</button>
+            <button ng-show="user.id == 4" class="btn btn-danger" ng-click="reset()">Reset</button>
         </div>
         <div id="userStats" class="col-xs-2">
             <h2>{{ user.nick }}'s Stats</h2>
@@ -49,6 +49,17 @@
             <table class="table unstyled">
                 <tr ng-repeat="user in localUsers"><td>{{ $index+1 }}.</td><td>{{ user.nick }}</td><td class="text-right"><strong>{{ user.score }}</strong></td></tr>
             </table>
+        </div>
+        <div id="log" class="col-xs-4">
+            <h2>Event Log</h2>
+            <em ng-hide="eventLog.length > 0" class="text-muted">Only shows events occurring after opening this page.</em>
+            <ul class="list-unstyled">
+                <li ng-repeat="event in eventLog">
+                    <span class="text-muted">{{ event.time | date:'H:mm:ss' }}</span>&emsp; 
+                    {{ event.user }} <span class="text-muted">{{ event.action }}</span>
+                    {{ event.coords }}
+                </li>
+            </ul>
         </div>
     </div>
 </div>

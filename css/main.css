@@ -32,10 +32,13 @@ canvas { position: relative; }
 
 .hard-left { padding-left: 0; } .hard-right { padding-right: 0; }
 
-#uiContainer { margin-top: -20px; }
+#uiContainer { top: -28px; }
 
 
 #info h2 { color: #c8c8c8; font-size: 20px }
+
+#log ul { font-size: 11px; }
+#log ul li { margin-bottom: 0; }
 
 #uiContainer li { margin-bottom: 3px; }
 #uiContainer li button {
@@ -67,7 +70,7 @@ button .glyphicon {
 }
 
 #uiContainer table.unstyled { background: transparent; }
-#uiContainer table.unstyled  td { padding: 2px 6px 0 0; border: none; color: #999; }
+#uiContainer table.unstyled tr td { padding: 2px 6px 0 0; border: none; color: #999; }
 strong { color: #ccc; }
 
 

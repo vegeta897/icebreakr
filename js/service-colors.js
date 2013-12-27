@@ -58,7 +58,7 @@ angular.module('Icebreakr.colors', [])
             }
             
         };
-        var applyWeight = function(oldColor, newColor, strength) {
+        var blendColors = function(oldColor, newColor, strength) {
             if(oldColor.hue - newColor.hue > 180) { // We should go up to reach new hue
                 newColor.hue += 360;
             } else if(newColor.hue - oldColor.hue > 180) { // We should go down to reach new hue
@@ -102,7 +102,7 @@ angular.module('Icebreakr.colors', [])
                 }
             //    var averages = getAverages(palette);
                 var hsv = {};
-                if(weight) { hsv = applyWeight(weight.oldColor, weight.newColor, weight.strength); } else
+                if(weight) { hsv = blendColors(weight.oldColor, weight.newColor, weight.strength); } else
                 if(maxMins) {
                     var hueRange = maxMins.maxHue - maxMins.minHue;
                     var satRange = maxMins.maxSat - maxMins.minSat;

@@ -6,8 +6,8 @@ angular.module('Icebreakr.controllers', [])
         $scope.overPixel = ['-','-']; // Tracking your coordinates'
         $scope.authStatus = '';
         $scope.helpText = '';
-        $scope.userTaps = 0;
         $scope.localUsers = {};
+        $scope.eventLog = [];
         var mainPixSize = 3, keyPressed = false, keyUpped = true, mouseDown,
             pinging = false, userID, fireUser, localPixels = {}, tutorialStep = 0;
         
@@ -123,20 +123,49 @@ angular.module('Icebreakr.controllers', [])
         // Disable text selection.
         mainHighCanvas.onselectstart = function() { return false; };
         
-        $scope.resetUser = function() {
-            fireUser.set({taps: 0, score: 0, breaks: 0});
+        // Reset all taps and scores
+        $scope.reset = function() {
+            fireRef.once('value',function(snap) {
+                var cleaned = snap.val();
+                delete cleaned.taps;
+                for(var key in cleaned.users) {
+                    if(cleaned.users.hasOwnProperty(key)) {
+                        var cleanUser = cleaned.users[key];
+                        cleanUser.breaks = cleanUser.score = cleanUser.taps = 0;
+                    }
+                }
+                fireRef.set(cleaned);
+            });
         };
         
         var onMouseDown = function(e) {
             e.preventDefault();
             // TODO: tap on the ice!
+            var offset = jQuery(mainHighCanvas).offset(); // Get pixel location
+            var x = Math.floor((e.pageX - offset.left) / mainPixSize),
+                y = Math.floor((e.pageY - offset.top) / mainPixSize);
             fireUser.child('taps').once('value', function(snap) { 
                 $scope.$apply(function() {
                     $scope.user.taps = snap.val() + 1;
                     $scope.user.score = $scope.user.taps - $scope.user.breaks * 30;
-                    fireUser.set($scope.user);
+                    fireUser.set(angular.copy($scope.user));
                 });
             });
+            var tapped = {};
+            var theTime = new Date().getTime();
+            fireRef.child('taps/'+x+':'+y).once('value', function(snap) {
+                if(snap.val()) { // Is there already a tap there?
+                    tapped = snap.val();
+                    tapped.tapCount++;
+                    tapped.lastTap = theTime;
+                    tapped.lastUser = $scope.user.id;
+                } else { // Fresh tap
+                    tapped = { tapCount: 1, firstTap: theTime, lastTap: theTime, 
+                        seed: Math.round(Math.random() * 100000),
+                        firstUser: $scope.user.id, lastUser: $scope.user.id };
+                }
+                fireRef.child('taps/'+x+':'+y).set(angular.copy(tapped));
+            })
         };
 
         var onMouseUp = function(e) { mouseDown = false; };
@@ -150,12 +179,10 @@ angular.module('Icebreakr.controllers', [])
             if($scope.overPixel[0] != x || $scope.overPixel[1] != y) {
                 mainHighCanvas.style.cursor = 'default'; // Show cursor
                 dimPixel(); // Dim the previous pixel
-                $scope.$apply(function() {
-                    $scope.overPixel = [x,y];
-                    var drawColor = 'rgba(255, 255, 255, 0.1)';
-                    canvasUtility.drawPixel(mainHighContext, drawColor, // Highlight pixel underneath cursor
-                        $scope.overPixel, [1,1]);
-                });
+                var drawColor = 'rgba(255, 255, 255, 0.1)';
+                canvasUtility.drawPixel(mainHighContext, drawColor, // Highlight pixel underneath cursor
+                    $scope.overPixel, [1,1]);
+                $scope.$apply(function() { $scope.overPixel = [x,y]; });
             }
         };
         // Dim the pixel after leaving it
@@ -165,9 +192,7 @@ angular.module('Icebreakr.controllers', [])
         // When the mouse leaves the canvas
         var onMouseOut = function() {
             dimPixel();
-            $scope.$apply(function() {
-                $scope.overPixel = ['-','-'];
-            });
+            $scope.$apply(function() { $scope.overPixel = ['-','-']; });
         };
         // Ping a pixel
         var ping = function() {
@@ -190,30 +215,40 @@ angular.module('Icebreakr.controllers', [])
         jQuery(mainHighCanvas).mouseup(onMouseUp);
         jQuery(window).resize(alignCanvases); // Re-align canvases on window resize
         
-        // When a cell is added/changed
-        var drawPixel = function(snapshot) {
-            if(snapshot.val().owner == userID && !localPixels.hasOwnProperty(snapshot.name())) {
-                $scope.userTaps++; }
-            localPixels[snapshot.name()] = snapshot.val();
-            localPixels[snapshot.name()].grid = snapshot.name(); // Add grid and owner nickname properties
-            var coords = snapshot.name().split(":");
-            canvasUtility.drawPixel(mainContext,snapshot.val().color.hex,coords,[1,1]);
+        // When a tap is added/changed
+        var drawTap = function(snap) {
+            localPixels[snap.name()] = snap.val();
+            localPixels[snap.name()].grid = snap.name(); // Add grid and owner nickname properties
+            var coords = snap.name().split(":");
+        //    canvasUtility.drawPixel(mainContext,snapshot.val().color.hex,coords,[1,1]);
+            if(!$scope.localUsers.hasOwnProperty('4')) { return; } // If users haven't been fetched yet
+            $scope.eventLog.unshift({ user: $scope.localUsers[snap.val().lastUser].nick, action: 'tapped',
+                coords: coords[0] + ' , ' + coords[1], time: snap.val().lastTap });
+            if($scope.eventLog.length > 10) {
+                $scope.eventLog.pop();
+            }
         };
-        // When a cell is removed
-        var clearPixel = function(snapshot) {
-            if(snapshot.val().owner == userID) { $scope.userTaps--; }
-            delete localPixels[snapshot.name()];
-            var coords = snapshot.name().split(":");
+        // When the board is reset
+        var clearCanvas = function(snapshot) {
+            $scope.eventLog = [];
             $timeout(function(){ alignCanvases(); }, 200); // Realign canvases
-            canvasUtility.drawPixel(mainContext,'1f2022',coords,[1,1]);
+            canvasUtility.fillCanvas(mainContext,'1f2022'); // Clear canvas
         };
+        
+        var updateUsers = function(snap) {
+            $timeout(function() { 
+                $scope.localUsers[snap.name()] = snap.val(); 
+                if(!$scope.user) { return; }
+                $scope.user = $scope.localUsers[$scope.user.id] 
+            });
+        };
+        
         // Firebase listeners
-        fireRef.child('taps').on('child_added', drawPixel);
-        fireRef.child('taps').on('child_changed', drawPixel);
-        fireRef.child('taps').on('child_removed', clearPixel);
-        fireRef.child('users').on('child_added', function(snap) { $scope.localUsers[snap.name()] = snap.val(); });
-        fireRef.child('users').on('child_changed', function(snap) { $scope.localUsers[snap.name()] = snap.val(); });
-        fireRef.child('users').on('child_removed', function(snap) { delete $scope.localUsers[snap.name()]; });
+        fireRef.child('taps').on('child_added', drawTap);
+        fireRef.child('taps').on('child_changed', drawTap);
+        fireRef.child('taps').on('child_removed', clearCanvas);
+        fireRef.child('users').on('child_added', updateUsers);
+        fireRef.child('users').on('child_changed', updateUsers);
         fireRef.child('meta/pings').on('child_added', drawPing);
         fireRef.child('meta/pings').on('child_removed', hidePing);
         
