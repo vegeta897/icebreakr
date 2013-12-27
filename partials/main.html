@@ -18,26 +18,13 @@
     </div>
 </div>
 <div id="mainContainer" class="container">
-    <div class="canvas-container"> <!-- Left side canvases -->
-        <canvas id="mainCanvas" width="600" height="600"> <!-- Main canvas -->
-            Your browser doesn't support canvases. <a href="http://www.google.com/chrome">Get a better one.</a>
-        </canvas>
-        <canvas id="mainPingCanvas" width="600" height="600"></canvas> <!-- Ping canvas -->
-        <canvas id="mainHighlightCanvas" width="600" height="600"></canvas> <!-- Main highlight canvas -->
-    </div>
-    <div class="canvas-container text-right"> <!-- Right side canvases -->
-        <canvas id="zoomCanvas" width="600" height="600"></canvas> <!-- Main canvas -->
-        <canvas id="zoomHighlightCanvas" width="600" height="600"></canvas> <!-- Zoom highlight canvas -->
-    </div>
-    <div class="col-xs-1 pull-left hard-left coords">
-        {{ zoomPosition[0] }} , {{ zoomPosition[1] }}
-    </div>
+    <canvas id="mainCanvas" width="1200" height="840"> <!-- Main canvas -->
+        Your browser doesn't support canvases. <a href="http://www.google.com/chrome">Get a better one.</a>
+    </canvas>
+    <canvas id="mainPingCanvas" width="1200" height="840"></canvas> <!-- Ping canvas -->
+    <canvas id="mainHighlightCanvas" width="1200" height="840"></canvas> <!-- Main highlight canvas -->
     <div class="col-xs-1 text-right hard-right pull-right coords">
-        {{ overPixel[0] }} , {{ overPixel[1] }}
-    </div>
-    <div class="col-xs-2 text-right hard-right pull-right coords">
-        <input type="text" class="zoom-slider" value="" data-slider-handle="square" data-slider-min="0"
-               data-slider-max="8" data-slider-selection="none" data-slider-value="3" data-slider-tooltip="hide">
+        {{ overPixel[0] }} <span class="text-muted">,</span> {{ overPixel[1] }}
     </div>
 </div>
 <div id="uiContainer" ng-show="userInit" class="container">
