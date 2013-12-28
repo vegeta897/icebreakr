@@ -24,30 +24,26 @@ angular.module('Icebreakr.canvas', [])
             },
             drawNode: function(context,x,y,nodes,intensity) {
 
-                context.beginPath();
                 var ox = x*mainPixSize+1.5, oy = y*mainPixSize+1.5;
                 var nearNodes = getCircle(nodes,x,y,12);
+                var opacity = intensity / 20;
                 for(var i = 0; i < nearNodes.length; i++) {
                     if(nearNodes[i] == x+':'+y) { continue; }
                     var nx = nearNodes[i].split(':')[0]*mainPixSize + 1.5, 
                         ny = nearNodes[i].split(':')[1]*mainPixSize + 1.5;
+                    // Draw shading
+                    context.beginPath();
+                    context.moveTo(ox+1, oy+1);
+                    context.lineTo(nx+1, ny+1);
+                    context.strokeStyle = 'rgba(0, 0, 0, '+(opacity*1.5)+')';
+                    context.stroke();
+                    // Draw white line
+                    context.beginPath();
                     context.moveTo(ox, oy);
                     context.lineTo(nx, ny);
+                    context.strokeStyle = 'rgba(255, 255, 255, '+opacity+')';
+                    context.stroke();
                 }
-                var opacity = intensity / 30;
-                context.strokeStyle = 'rgba(255, 255, 255, '+opacity+')';
-                context.stroke();
-            },
-            drawNodes: function(context,coords,tap) {
-                context.beginPath();
-                var ox = coords[0]*mainPixSize+1.5, oy = coords[1]*mainPixSize+1.5;
-                for(var i = 0; i < tap.length; i++) {
-                    var dx = tap[i][0]*mainPixSize, dy = tap[i][1]*mainPixSize;
-                    context.moveTo(ox, oy);
-                    context.lineTo(ox + dx, oy + dy);
-                }
-                context.strokeStyle = 'rgba(255, 255, 255, 0.075)';
-                context.stroke();
             },
             drawPixel: function(context,color,coords,size) {
                 var method = color == 'erase' ? 'clearRect' : 'fillRect';

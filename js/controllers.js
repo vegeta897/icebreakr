@@ -3,6 +3,8 @@
 angular.module('Icebreakr.controllers', [])
 	.controller('Main', ['$scope', '$timeout', '$filter', 'localStorageService', 'colorUtility', 'canvasUtility', 'gameUtility', function($scope, $timeout, $filter, localStorageService, colorUtility, canvasUtility, gameUtility) {
         
+        $scope.version = 0.1;
+        $scope.needUpdate = false;
         $scope.overPixel = ['-','-']; // Tracking your coordinates'
         $scope.authStatus = '';
         $scope.helpText = '';
@@ -20,57 +22,63 @@ angular.module('Icebreakr.controllers', [])
 
         // Create a reference to the pixel data for our canvas
         var fireRef = new Firebase('https://icebreakr.firebaseio.com/map1');
-        // Create a reference to the auth service for our data
-        var auth = new FirebaseSimpleLogin(fireRef, function(error, user) {
-            $timeout(function() {
-                if(error) {
-                    console.log(error, $scope.loginEmail, $scope.loginPassword);
-                    if(error.code == 'INVALID_USER') {
-                        auth.createUser($scope.loginEmail, $scope.loginPassword, 
-                            function(createdError, createdUser) {
-                            if(createdError) { console.log(createdError); } else {
-                                console.log('user created:',createdUser.id,createdUser.email);
-                                userID = createdUser.id;
-                                $scope.user = {id: createdUser.id, email: createdUser.email, 
-                                    taps: 0, score: 0, breaks: 0, 
-                                    nick: createdUser.email.substr(0,createdUser.email.indexOf('@'))};
-                                fireRef.auth(createdUser.token, function() {
-                                    fireUser = fireRef.child('users/'+userID);
-                                    fireUser.set($scope.user, 
-                                        function() { initUser(); });
-                                    $timeout(function() { $scope.authStatus = 'logged'; });
-                                });
-                            }
-                        })
-                    } else if(error.code == 'INVALID_PASSWORD') { $scope.authStatus = 'badPass'; } else 
-                    if(error.code == 'INVALID_EMAIL') { $scope.authStatus = 'badEmail'; }
-                } else if(user) {
-                    console.log('logged in:',user.id,user.email);
-                    $scope.user = user;
-                    userID = user.id;
-                    fireUser = fireRef.child('users/'+userID);
-                    initUser();
-                    $scope.authStatus = 'logged';
-                } else { console.log('logged out'); $scope.authStatus = 'notLogged'; }
-            });
-        });
         
+        fireRef.parent().child('version').once('value', function(snap) { // Check version number
+            if($scope.version == snap.val()) {
+                // Create a reference to the auth service for our data
+                var auth = new FirebaseSimpleLogin(fireRef, function(error, user) {
+                    $timeout(function() {
+                        if(error) {
+                            console.log(error, $scope.loginEmail, $scope.loginPassword);
+                            if(error.code == 'INVALID_USER') {
+                                auth.createUser($scope.loginEmail, $scope.loginPassword,
+                                    function(createdError, createdUser) {
+                                        if(createdError) { console.log(createdError); } else {
+                                            console.log('user created:',createdUser.id,createdUser.email);
+                                            userID = createdUser.id;
+                                            $scope.user = {id: createdUser.id, email: createdUser.email,
+                                                taps: 0, score: 0, breaks: 0,
+                                                nick: createdUser.email.substr(0,createdUser.email.indexOf('@'))};
+                                            fireRef.auth(createdUser.token, function() {
+                                                fireUser = fireRef.child('users/'+userID);
+                                                fireUser.set($scope.user,
+                                                    function() { initUser(); });
+                                                $timeout(function() { $scope.authStatus = 'logged'; });
+                                            });
+                                        }
+                                    })
+                            } else if(error.code == 'INVALID_PASSWORD') { $scope.authStatus = 'badPass'; } else
+                            if(error.code == 'INVALID_EMAIL') { $scope.authStatus = 'badEmail'; }
+                        } else if(user) {
+                            console.log('logged in:',user.id,user.email);
+                            $scope.user = user;
+                            userID = user.id;
+                            fireUser = fireRef.child('users/'+userID);
+                            initUser();
+                            $scope.authStatus = 'logged';
+                        } else { console.log('logged out'); $scope.authStatus = 'notLogged'; }
+                    });
+                });
+
+            } else { $scope.needUpdate = true; }
+        });
+
         var tutorial = function(action) {
             if(action == 'init') {
                 if(localStorageService.get('tutorialStep')) {
                     tutorialStep = localStorageService.get('tutorialStep');
                 } else { tutorialStep = 0; }
             } else { tutorialStep++; }
-            $timeout(function() { 
+            $timeout(function() {
                 $scope.helpText = gameUtility.tutorial(tutorialStep);
                 localStorageService.set('tutorialStep',tutorialStep);
             });
         };
         tutorial('init');
-        
+
         var initUser = function() {
             fireUser.once('value', function(snapshot) {
-                $timeout(function() { 
+                $timeout(function() {
                     $scope.user = snapshot.val();
                     $scope.userInit = true;
                     jQuery(mainHighCanvas).mousedown(onMouseDown);
@@ -80,7 +88,7 @@ angular.module('Icebreakr.controllers', [])
                 });
             });
         };
-        
+
         // Attempt to get these variables from localstorage
         var localStores = ['zoomPosition','zoomLevel'];
         for(var i = 0; i < localStores.length; i++) {
@@ -88,7 +96,7 @@ angular.module('Icebreakr.controllers', [])
                 $scope[localStores[i]] = localStorageService.get(localStores[i]);
             }
         }
-        
+
         // Set up our canvas
         var mainCanvas = document.getElementById('mainCanvas');
         var mainContext = mainCanvas.getContext ? mainCanvas.getContext('2d') : null;
@@ -108,25 +116,25 @@ angular.module('Icebreakr.controllers', [])
             jQuery(mainPingCanvas).offset(jQuery(mainCanvas).offset());
             jQuery(mainHighCanvas).offset(jQuery(mainCanvas).offset());
         };
-        
+
         // Keep track of if the mouse is up or down
-        mainHighCanvas.onmousedown = function(event) { 
-            mouseDown = 1; 
+        mainHighCanvas.onmousedown = function(event) {
+            mouseDown = 1;
             if(event.which == 2) {
-                
+
             }
-            return false; 
+            return false;
         };
         mainHighCanvas.onmouseout = mainHighCanvas.onmouseup = function(event) {
             if(event.which == 2) {
-                
+
             }
-            mouseDown = 0; 
+            mouseDown = 0;
         };
 
         // Disable text selection.
         mainHighCanvas.onselectstart = function() { return false; };
-        
+
         // Reset all nodes and scores
         $scope.reset = function() {
             fireRef.once('value',function(snap) {
@@ -141,13 +149,13 @@ angular.module('Icebreakr.controllers', [])
                 fireRef.set(cleaned);
             });
         };
-        
+
         var onMouseDown = function(e) {
             e.preventDefault();
             var offset = jQuery(mainHighCanvas).offset(); // Get pixel location
             var x = Math.floor((e.pageX - offset.left) / mainPixSize),
                 y = Math.floor((e.pageY - offset.top) / mainPixSize);
-            fireUser.child('taps').once('value', function(snap) { 
+            fireUser.child('taps').once('value', function(snap) {
                 $scope.$apply(function() {
                     $scope.user.taps = snap.val() + 1;
                     $scope.user.score = $scope.user.taps - $scope.user.breaks * 30;
@@ -157,11 +165,11 @@ angular.module('Icebreakr.controllers', [])
             var tapped = {};
             var theTime = new Date().getTime();
             fireRef.child('nodes').once('value', function(snap) {
-                
+
                 var newNodes = gameUtility.tapNode(snap.val(),x,y); // Tap dat node
-                
+
                 fireRef.child('nodes').update(angular.copy(newNodes));
-                
+
 //                if(snap.val().hasOwnProperty(x+':'+y)) { // Is there already a tap there?
 //                    tapped = snap.val();
 //                    tapped.tapCount++;
@@ -179,7 +187,7 @@ angular.module('Icebreakr.controllers', [])
         };
 
         var onMouseUp = function(e) { mouseDown = false; };
-        
+
         // Check for mouse moving to new pixel
         var onMouseMove = function(e) {
             var offset = jQuery(mainHighCanvas).offset(); // Get pixel location
@@ -218,18 +226,18 @@ angular.module('Icebreakr.controllers', [])
         };
         var drawPing = function(snapshot) { canvasUtility.drawPing(mainPingContext,snapshot.name().split(":")); };
         var hidePing = function(snapshot) { canvasUtility.clearPing(mainPingContext,snapshot.name().split(":")); };
-        
+
         jQuery(mainHighCanvas).mousemove(onMouseMove);
         jQuery(mainHighCanvas).mouseleave(onMouseOut);
         jQuery(window).resize(alignCanvases); // Re-align canvases on window resize
-        
+
         // When a tap is added/changed
         var drawNode = function(snap) {
-            if(snap.val().depth > 30) { return; }
+            if(snap.val().depth > 20) { return; }
             var intensity = 0;
             if(localNodes.hasOwnProperty(snap.name())) {
                 intensity = snap.val().depth - localNodes[snap.name()].depth;
-                
+
             } else {
                 intensity = snap.val().depth;
             }
@@ -237,8 +245,8 @@ angular.module('Icebreakr.controllers', [])
             node.grid = snap.name(); // Add grid property
             var coords = snap.name().split(":");
             canvasUtility.drawNode(mainContext,coords[0],coords[1],localNodes,intensity);
-        //    canvasUtility.drawPixel(mainContext,'erase',coords,[1,1]);
-        //    canvasUtility.drawPixel(mainContext,'rgba(255, 255, 255, '+node.depth/30+')',coords,[1,1]);
+            //    canvasUtility.drawPixel(mainContext,'erase',coords,[1,1]);
+            //    canvasUtility.drawPixel(mainContext,'rgba(255, 255, 255, '+node.depth/30+')',coords,[1,1]);
             if(!$scope.localUsers.hasOwnProperty('4')) { return; } // If users haven't been fetched yet
 //            $scope.eventLog.unshift({ user: $scope.localUsers[snap.val().lastUser].nick, action: 'tapped',
 //                coords: coords[0] + ' , ' + coords[1], time: snap.val().lastTap });
@@ -263,10 +271,10 @@ angular.module('Icebreakr.controllers', [])
             }
             return arr;
         };
-        
+
         var updateUsers = function(snap) {
-            $timeout(function() { 
-                $scope.localUsers[snap.name()] = snap.val(); 
+            $timeout(function() {
+                $scope.localUsers[snap.name()] = snap.val();
                 if(!$scope.user) { return; }
                 $scope.user = $scope.localUsers[$scope.user.id];
                 $scope.scoreBoard = [];
@@ -278,14 +286,14 @@ angular.module('Icebreakr.controllers', [])
                 $scope.scoreBoard = sortArrayByProperty($scope.scoreBoard,'score',true);
             });
         };
-        
+
         // Firebase listeners
         fireRef.child('nodes').on('child_added', drawNode);
         fireRef.child('nodes').on('child_changed', drawNode);
         fireRef.child('nodes').on('child_removed', clearCanvas);
         fireRef.child('meta/pings').on('child_added', drawPing);
         fireRef.child('meta/pings').on('child_removed', hidePing);
-        
+
         var onKeyDown = function(e) {
             if(!keyUpped) { return; }
             keyUpped = false;
@@ -295,7 +303,7 @@ angular.module('Icebreakr.controllers', [])
                     break;
             }
         };
-        
+
         // Draw grid
 //        for(var ix = 0; ix < 400; ix++) {
 //            for(var iy = 0; iy < 250; iy++) {
@@ -306,5 +314,6 @@ angular.module('Icebreakr.controllers', [])
 
         jQuery(window).keydown(onKeyDown);
         jQuery(window).keyup(function() { keyUpped = true; });
+        
     }])
     ;

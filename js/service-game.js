@@ -86,7 +86,7 @@ angular.module('Icebreakr.game', [])
                 oNode.grid = oCoords;
                 nodes[oCoords] = oNode;
                 ox = parseInt(oCoords.split(':')[0]); oy = parseInt(oCoords.split(':')[1]);
-                var nearNodes = getCircle(nodes,ox,oy,6);
+                var nearNodes = getCircle(nodes,ox,oy,12);
                 console.log('found',nearNodes.length-1,'nodes nearby!');
                 var maxNew = 0, minNew = 0;
                 if(nearNodes.length-1 >= 3) { // If there are at least 3 nearby nodes
