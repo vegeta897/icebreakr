@@ -156,9 +156,9 @@ angular.module('Icebreakr.controllers', [])
             var theTime = new Date().getTime();
             fireRef.child('nodes').once('value', function(snap) {
                 
-                localNodes = gameUtility.tapNodes(snap.val(),x,y); // Tap dem nodes
+                var newNodes = gameUtility.tapNodes(snap.val(),x,y); // Tap dem nodes
                 
-                fireRef.child('nodes').update(angular.copy(localNodes));
+                fireRef.child('nodes').update(angular.copy(newNodes));
                 
 //                if(snap.val().hasOwnProperty(x+':'+y)) { // Is there already a tap there?
 //                    tapped = snap.val();
@@ -223,12 +223,19 @@ angular.module('Icebreakr.controllers', [])
         
         // When a tap is added/changed
         var drawNode = function(snap) {
+            var intensity = 0;
+            if(localNodes.hasOwnProperty(snap.name())) {
+                intensity = snap.val().depth - localNodes[snap.name()].depth;
+                
+            } else {
+                intensity = snap.val().depth;
+            }
             var node = localNodes[snap.name()] = snap.val();
             node.grid = snap.name(); // Add grid property
             var coords = snap.name().split(":");
-            //canvasUtility.drawNodes(mainContext,coords,nodes);
-            canvasUtility.drawPixel(mainContext,'erase',coords,[1,1]);
-            canvasUtility.drawPixel(mainContext,'rgba(255, 255, 255, '+node.depth/30+')',coords,[1,1]);
+            canvasUtility.drawNode(mainContext,coords[0],coords[1],localNodes,intensity);
+        //    canvasUtility.drawPixel(mainContext,'erase',coords,[1,1]);
+        //    canvasUtility.drawPixel(mainContext,'rgba(255, 255, 255, '+node.depth/30+')',coords,[1,1]);
             if(!$scope.localUsers.hasOwnProperty('4')) { return; } // If users haven't been fetched yet
 //            $scope.eventLog.unshift({ user: $scope.localUsers[snap.val().lastUser].nick, action: 'tapped',
 //                coords: coords[0] + ' , ' + coords[1], time: snap.val().lastTap });

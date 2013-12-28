@@ -3,11 +3,40 @@
 angular.module('Icebreakr.canvas', [])
     .factory('canvasUtility', function(colorUtility) {
         var mainPixSize = 3;
+        var getCircle = function(nodes,x,y,dist) { // Check circular area around x,y
+            var neighbors = [];
+            x = parseInt(x); y = parseInt(y);
+            for(var i = dist*-1; i <= dist; i++) {
+                for(var ii = dist*-1; ii <= dist; ii++) {
+                    var nx = (x+i), ny = (y+ii);
+                    if(dist*dist > i*i + ii*ii && nodes.hasOwnProperty(nx+':'+ny)) {
+                        neighbors.push(nx+':'+ny);
+                    }
+                }
+            }
+            return neighbors;
+        };
         return {
             fillCanvas: function(context,color) {
                 var method = color == 'erase' ? 'clearRect' : 'fillRect';
                 if(color != 'erase') { context.fillStyle = color.charAt(0) == 'r' ? color : '#' + color; }
                 context[method](0,0,1200,750);
+            },
+            drawNode: function(context,x,y,nodes,intensity) {
+
+                context.beginPath();
+                var ox = x*mainPixSize+1.5, oy = y*mainPixSize+1.5;
+                var nearNodes = getCircle(nodes,x,y,12);
+                for(var i = 0; i < nearNodes.length; i++) {
+                    if(nearNodes[i] == x+':'+y) { continue; }
+                    var nx = nearNodes[i].split(':')[0]*mainPixSize + 1.5, 
+                        ny = nearNodes[i].split(':')[1]*mainPixSize + 1.5;
+                    context.moveTo(ox, oy);
+                    context.lineTo(nx, ny);
+                }
+                var opacity = intensity / 30;
+                context.strokeStyle = 'rgba(255, 255, 255, '+opacity+')';
+                context.stroke();
             },
             drawNodes: function(context,coords,tap) {
                 context.beginPath();

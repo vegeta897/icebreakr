@@ -62,40 +62,35 @@ angular.module('Icebreakr.game', [])
         };
         return {
             tapNodes: function(nodes,ox,oy) { // ox and oy are the clicked coords
-                console.log(Math.round((8 * Math.cos(toRadians(45-90)))));
-                console.log(Math.round((8 * Math.sin(toRadians(45-90)))));
                 var theTime = new Date().getTime();
                 var oCoords = '';
                 if(!nodes) { nodes = {}; } // If there are no nodes, create a blank nodes object
                 // Pick origin node
                 if(nodes.hasOwnProperty(ox+':'+oy)) { // Is there a node on the clicked spot?
                     oCoords = ox+':'+oy;
-                    console.log('found existing node');
                 } else { // If not, check the surrounding area
                     var boxNeighbors = getBoxNeighbors(nodes,ox,oy,1);
                     if(boxNeighbors.length == 0) { // If no neighboring nodes are found
-                        console.log('created new origin node');
                         oCoords = ox+':'+oy;
                         nodes[oCoords] = { depth: 0, created:theTime }; // Create a new node at the clicked spot
                     } else { // Neighbor(s) found
-                        console.log('found existing node');
                         oCoords = boxNeighbors[randomIntRange(0,boxNeighbors.length-1)]; // Pick random neighbor
                     }
                 }
                 var oNode = nodes[oCoords]; // Origin node
                 ox = parseInt(oCoords.split(':')[0]); oy = parseInt(oCoords.split(':')[1]);
-                console.log('origin:',oCoords,' = ',ox,oy);
                 var nearNodes = getCircle(nodes,ox,oy,6);
                 console.log('found',nearNodes.length-1,'nodes nearby!');
-                var maxNew = 0;
+                var maxNew = 0, minNew = 0;
                 if(nearNodes.length-1 >= 3) { // If there are at least 3 nearby nodes
                     // Don't create any new ones
                 } else if(nearNodes.length-1 >= 1) { // 1 nearby
                     maxNew = 1;
                 } else { // None nearby
+                    minNew = 1;
                     maxNew = 2;
                 }
-                var newCount = randomIntRange(0,maxNew);
+                var newCount = randomIntRange(minNew,maxNew);
                 console.log('creating', newCount, 'new nodes');
                 if(newCount > 0) { // If we're creating new nodes
                     if(nearNodes.length > 1) {
@@ -106,7 +101,6 @@ angular.module('Icebreakr.game', [])
                             nearAngles.push(toDegrees(Math.atan2(delta[0],delta[1])));
                         }
                         var newAngles = [];
-                        console.log('forbidden angles:',nearAngles);
                         if(nearAngles.length == 2) {
                             if(nearAngles[0] - nearAngles[1] > 180) { // If we need to wrap
                                 nearAngles[1] += 360;
@@ -126,12 +120,9 @@ angular.module('Icebreakr.game', [])
                             var dist = randomRange(6,8);
                             var dx = Math.round((dist * Math.cos(toRadians(newAngles[k]-90))));
                             var dy = Math.round((dist * Math.sin(toRadians(newAngles[k]-90))));
-                            console.log('creating new node at angle',newAngles[k],'dist', dist, 
-                                '    cords:',(ox+dx),':',(oy+dy));
                             nodes[(ox+dx)+':'+(oy+dy)] = { depth: 1, created:theTime };
                         }
                     } else { // No nearby nodes
-                        console.log('no nearby nodes');
                         var lastAngle = Math.random() * 360;
                         for(var l = 0; l < newCount; l++) { // Create new nodes nearby
                             var ndist = randomRange(8 - l*2,8);
@@ -140,7 +131,6 @@ angular.module('Icebreakr.game', [])
                             var ndx = Math.round((ndist * Math.cos(toRadians(angle-90))));
                             var ndy = Math.round((ndist * Math.sin(toRadians(angle-90))));
                             nodes[(ox+ndx)+':'+(oy+ndy)] = { depth: 1, created:theTime };
-                            console.log('node created at',(ox+ndx)+':'+(oy+ndy));
                         }
                     }
                     
