@@ -9,20 +9,22 @@ angular.module('Icebreakr.canvas', [])
                 if(color != 'erase') { context.fillStyle = color.charAt(0) == 'r' ? color : '#' + color; }
                 context[method](0,0,1200,750);
             },
-            drawTap: function(context,coords,tap) {
+            drawNodes: function(context,coords,tap) {
                 context.beginPath();
-                var ox = coords[0]*mainPixSize, oy = coords[1]*mainPixSize;
+                var ox = coords[0]*mainPixSize+1.5, oy = coords[1]*mainPixSize+1.5;
                 for(var i = 0; i < tap.length; i++) {
-                    context.moveTo(ox + 0.5, oy + 0.5);
-                    context.lineTo(ox + tap[i][0], oy + tap[i][1]);
+                    var dx = tap[i][0]*mainPixSize, dy = tap[i][1]*mainPixSize;
+                    context.moveTo(ox, oy);
+                    context.lineTo(ox + dx, oy + dy);
                 }
-                context.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                context.strokeStyle = 'rgba(255, 255, 255, 0.075)';
                 context.stroke();
             },
             drawPixel: function(context,color,coords,size) {
                 var method = color == 'erase' ? 'clearRect' : 'fillRect';
+                var x = parseInt(coords[0]), y = parseInt(coords[1]);
                 if(color != 'erase') { context.fillStyle = color.charAt(0) == 'r' ? color : '#' + color; }
-                context[method](coords[0]*mainPixSize,coords[1]*mainPixSize,size[0]*mainPixSize,size[1]*mainPixSize);
+                context[method](x*mainPixSize,y*mainPixSize,size[0]*mainPixSize,size[1]*mainPixSize);
             },
             drawPing: function(context,coords) {
                 var pingGradient = context.createRadialGradient(

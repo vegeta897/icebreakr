@@ -9,7 +9,7 @@ angular.module('Icebreakr.controllers', [])
         $scope.localUsers = {};
         $scope.eventLog = [];
         var mainPixSize = 3, keyPressed = false, keyUpped = true, mouseDown,
-            pinging = false, userID, fireUser, localPixels = {}, tutorialStep = 0;
+            pinging = false, userID, fireUser, localNodes = {}, tutorialStep = 0;
         
         // Authentication
         $scope.authenticate = function() {
@@ -125,11 +125,11 @@ angular.module('Icebreakr.controllers', [])
         // Disable text selection.
         mainHighCanvas.onselectstart = function() { return false; };
         
-        // Reset all taps and scores
+        // Reset all nodes and scores
         $scope.reset = function() {
             fireRef.once('value',function(snap) {
                 var cleaned = snap.val();
-                delete cleaned.taps;
+                delete cleaned.nodes;
                 for(var key in cleaned.users) {
                     if(cleaned.users.hasOwnProperty(key)) {
                         var cleanUser = cleaned.users[key];
@@ -142,7 +142,6 @@ angular.module('Icebreakr.controllers', [])
         
         var onMouseDown = function(e) {
             e.preventDefault();
-            // TODO: tap on the ice!
             var offset = jQuery(mainHighCanvas).offset(); // Get pixel location
             var x = Math.floor((e.pageX - offset.left) / mainPixSize),
                 y = Math.floor((e.pageY - offset.top) / mainPixSize);
@@ -155,19 +154,25 @@ angular.module('Icebreakr.controllers', [])
             });
             var tapped = {};
             var theTime = new Date().getTime();
-            fireRef.child('taps/'+x+':'+y).once('value', function(snap) {
-                if(snap.val()) { // Is there already a tap there?
-                    tapped = snap.val();
-                    tapped.tapCount++;
-                    tapped.lastTap = theTime;
-                    tapped.lastUser = $scope.user.id;
-                } else { // Fresh tap
-                    Math.seedrandom(); // Generate new seed
-                    tapped = { tapCount: 1, firstTap: theTime, lastTap: theTime, 
-                        seed: Math.random(),
-                        firstUser: $scope.user.id, lastUser: $scope.user.id };
-                }
-                fireRef.child('taps/'+x+':'+y).set(angular.copy(tapped));
+            fireRef.child('nodes').once('value', function(snap) {
+                
+                localNodes = gameUtility.tapNodes(snap.val(),x,y); // Tap dem nodes
+                
+                fireRef.child('nodes').update(angular.copy(localNodes));
+                
+//                if(snap.val().hasOwnProperty(x+':'+y)) { // Is there already a tap there?
+//                    tapped = snap.val();
+//                    tapped.tapCount++;
+//                    tapped.lastTap = theTime;
+//                    tapped.lastUser = $scope.user.id;
+//                } else { // Fresh tap
+//                    Math.seedrandom(); // Generate new seed
+//                    tapped = { tapCount: 1, firstTap: theTime, lastTap: theTime, 
+//                        seed: Math.random(),
+//                        firstUser: $scope.user.id, lastUser: $scope.user.id };
+//                    var nodes = gameUtility.generateNodes(snap.val().seed,1);
+//                    localNodes[snap.name()].nodes = nodes;
+//                }
             })
         };
 
@@ -217,18 +222,19 @@ angular.module('Icebreakr.controllers', [])
         jQuery(window).resize(alignCanvases); // Re-align canvases on window resize
         
         // When a tap is added/changed
-        var drawTap = function(snap) {
-            localPixels[snap.name()] = snap.val();
-            localPixels[snap.name()].grid = snap.name(); // Add grid property
+        var drawNode = function(snap) {
+            var node = localNodes[snap.name()] = snap.val();
+            node.grid = snap.name(); // Add grid property
             var coords = snap.name().split(":");
-            var tap = gameUtility.generateTap(snap.val().seed,1);
-            canvasUtility.drawTap(mainContext,coords,tap);
+            //canvasUtility.drawNodes(mainContext,coords,nodes);
+            canvasUtility.drawPixel(mainContext,'erase',coords,[1,1]);
+            canvasUtility.drawPixel(mainContext,'rgba(255, 255, 255, '+node.depth/30+')',coords,[1,1]);
             if(!$scope.localUsers.hasOwnProperty('4')) { return; } // If users haven't been fetched yet
-            $scope.eventLog.unshift({ user: $scope.localUsers[snap.val().lastUser].nick, action: 'tapped',
-                coords: coords[0] + ' , ' + coords[1], time: snap.val().lastTap });
-            if($scope.eventLog.length > 10) { // Keep the event log to 10 messages max
-                $scope.eventLog.pop();
-            }
+//            $scope.eventLog.unshift({ user: $scope.localUsers[snap.val().lastUser].nick, action: 'tapped',
+//                coords: coords[0] + ' , ' + coords[1], time: snap.val().lastTap });
+//            if($scope.eventLog.length > 10) { // Keep the event log to 10 messages max
+//                $scope.eventLog.pop();
+//            }
         };
         // When the board is reset
         var clearCanvas = function(snapshot) {
@@ -246,9 +252,9 @@ angular.module('Icebreakr.controllers', [])
         };
         
         // Firebase listeners
-        fireRef.child('taps').on('child_added', drawTap);
-        fireRef.child('taps').on('child_changed', drawTap);
-        fireRef.child('taps').on('child_removed', clearCanvas);
+        fireRef.child('nodes').on('child_added', drawNode);
+        fireRef.child('nodes').on('child_changed', drawNode);
+        fireRef.child('nodes').on('child_removed', clearCanvas);
         fireRef.child('users').on('child_added', updateUsers);
         fireRef.child('users').on('child_changed', updateUsers);
         fireRef.child('meta/pings').on('child_added', drawPing);
@@ -263,6 +269,14 @@ angular.module('Icebreakr.controllers', [])
                     break;
             }
         };
+        
+        // Draw grid
+//        for(var ix = 0; ix < 400; ix++) {
+//            for(var iy = 0; iy < 250; iy++) {
+//                mainContext.fillStyle = '#332222';
+//                mainContext.fillRect(ix*mainPixSize+1,iy*mainPixSize+1,1,1);
+//            }
+//        }
 
         jQuery(window).keydown(onKeyDown);
         jQuery(window).keyup(function() { keyUpped = true; });
