@@ -3,25 +3,18 @@
 angular.module('Icebreakr.canvas', [])
     .factory('canvasUtility', function(colorUtility) {
         var mainPixSize = 3;
-        var getDigit = function(num, digit) {
-            return Math.floor(num / (Math.pow(10, digit-1)) % 10)
-        };
         return {
             fillCanvas: function(context,color) {
                 var method = color == 'erase' ? 'clearRect' : 'fillRect';
                 if(color != 'erase') { context.fillStyle = color.charAt(0) == 'r' ? color : '#' + color; }
                 context[method](0,0,1200,750);
             },
-            drawTap: function(context,coords,seed,intensity) {
+            drawTap: function(context,coords,tap) {
                 context.beginPath();
                 var ox = coords[0]*mainPixSize, oy = coords[1]*mainPixSize;
-                for(var i = 0; i < 3; i++) {
+                for(var i = 0; i < tap.length; i++) {
                     context.moveTo(ox + 0.5, oy + 0.5);
-                    var dist = 3 + getDigit(seed*(i+1),1)/2;
-                    var angle = getDigit(seed*(i+1),1) * getDigit(seed*(i+1),2) / 81 * 360;
-                    var dx = dist * Math.cos(angle);
-                    var dy = dist * Math.sin(angle);
-                    context.lineTo(ox + dx, oy + dy);
+                    context.lineTo(ox + tap[i][0], oy + tap[i][1]);
                 }
                 context.strokeStyle = 'rgba(255, 255, 255, 0.1)';
                 context.stroke();

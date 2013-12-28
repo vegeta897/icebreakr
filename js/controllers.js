@@ -73,6 +73,8 @@ angular.module('Icebreakr.controllers', [])
                 $timeout(function() { 
                     $scope.user = snapshot.val();
                     $scope.userInit = true;
+                    jQuery(mainHighCanvas).mousedown(onMouseDown);
+                    jQuery(mainHighCanvas).mouseup(onMouseUp);
                 });
             });
         };
@@ -160,8 +162,9 @@ angular.module('Icebreakr.controllers', [])
                     tapped.lastTap = theTime;
                     tapped.lastUser = $scope.user.id;
                 } else { // Fresh tap
+                    Math.seedrandom(); // Generate new seed
                     tapped = { tapCount: 1, firstTap: theTime, lastTap: theTime, 
-                        seed: Math.round(Math.random() * 100000),
+                        seed: Math.random(),
                         firstUser: $scope.user.id, lastUser: $scope.user.id };
                 }
                 fireRef.child('taps/'+x+':'+y).set(angular.copy(tapped));
@@ -211,16 +214,15 @@ angular.module('Icebreakr.controllers', [])
         
         jQuery(mainHighCanvas).mousemove(onMouseMove);
         jQuery(mainHighCanvas).mouseleave(onMouseOut);
-        jQuery(mainHighCanvas).mousedown(onMouseDown);
-        jQuery(mainHighCanvas).mouseup(onMouseUp);
         jQuery(window).resize(alignCanvases); // Re-align canvases on window resize
         
         // When a tap is added/changed
         var drawTap = function(snap) {
             localPixels[snap.name()] = snap.val();
-            localPixels[snap.name()].grid = snap.name(); // Add grid and owner nickname properties
+            localPixels[snap.name()].grid = snap.name(); // Add grid property
             var coords = snap.name().split(":");
-            canvasUtility.drawTap(mainContext,coords,snap.val().seed,1);
+            var tap = gameUtility.generateTap(snap.val().seed,1);
+            canvasUtility.drawTap(mainContext,coords,tap);
             if(!$scope.localUsers.hasOwnProperty('4')) { return; } // If users haven't been fetched yet
             $scope.eventLog.unshift({ user: $scope.localUsers[snap.val().lastUser].nick, action: 'tapped',
                 coords: coords[0] + ' , ' + coords[1], time: snap.val().lastTap });
