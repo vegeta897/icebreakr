@@ -47,7 +47,7 @@
         <div id="scoreboard" class="col-xs-2">
             <h2>Scoreboard</h2>
             <table class="table unstyled">
-                <tr ng-repeat="user in localUsers"><td>{{ $index+1 }}.</td><td>{{ user.nick }}</td><td class="text-right"><strong>{{ user.score }}</strong></td></tr>
+                <tr ng-repeat="user in scoreBoard"><td>{{ $index+1 }}.</td><td>{{ user.nick }}</td><td class="text-right"><strong>{{ user.score }}</strong></td></tr>
             </table>
         </div>
         <div id="log" class="col-xs-4">

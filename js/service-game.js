@@ -61,23 +61,30 @@ angular.module('Icebreakr.game', [])
             return nodes;
         };
         return {
-            tapNodes: function(nodes,ox,oy) { // ox and oy are the clicked coords
+            tapNode: function(nodes,ox,oy) { // ox and oy are the clicked coords
                 var theTime = new Date().getTime();
-                var oCoords = '';
+                var oCoords = ''; // Origin node coordinates (will use nearby node if possible)
+                var oNode = {}; // Origin node
+                var newNodes = {}; // New nodes to be returned
                 if(!nodes) { nodes = {}; } // If there are no nodes, create a blank nodes object
                 // Pick origin node
                 if(nodes.hasOwnProperty(ox+':'+oy)) { // Is there a node on the clicked spot?
                     oCoords = ox+':'+oy;
+                    oNode.depth = nodes[oCoords].depth;
+                    oNode.created = nodes[oCoords].created;
                 } else { // If not, check the surrounding area
                     var boxNeighbors = getBoxNeighbors(nodes,ox,oy,1);
                     if(boxNeighbors.length == 0) { // If no neighboring nodes are found
                         oCoords = ox+':'+oy;
-                        nodes[oCoords] = { depth: 0, created:theTime }; // Create a new node at the clicked spot
+                        oNode = { depth: 0, created:theTime }; // Create a new node at the clicked spot
                     } else { // Neighbor(s) found
                         oCoords = boxNeighbors[randomIntRange(0,boxNeighbors.length-1)]; // Pick random neighbor
+                        oNode.depth = nodes[oCoords].depth;
+                        oNode.created = nodes[oCoords].created;
                     }
                 }
-                var oNode = nodes[oCoords]; // Origin node
+                oNode.grid = oCoords;
+                nodes[oCoords] = oNode;
                 ox = parseInt(oCoords.split(':')[0]); oy = parseInt(oCoords.split(':')[1]);
                 var nearNodes = getCircle(nodes,ox,oy,6);
                 console.log('found',nearNodes.length-1,'nodes nearby!');
@@ -120,6 +127,7 @@ angular.module('Icebreakr.game', [])
                             var dist = randomRange(6,8);
                             var dx = Math.round((dist * Math.cos(toRadians(newAngles[k]-90))));
                             var dy = Math.round((dist * Math.sin(toRadians(newAngles[k]-90))));
+                            newNodes[(ox+dx)+':'+(oy+dy)] = { depth: 1, created:theTime };
                             nodes[(ox+dx)+':'+(oy+dy)] = { depth: 1, created:theTime };
                         }
                     } else { // No nearby nodes
@@ -130,16 +138,15 @@ angular.module('Icebreakr.game', [])
                             lastAngle = angle;
                             var ndx = Math.round((ndist * Math.cos(toRadians(angle-90))));
                             var ndy = Math.round((ndist * Math.sin(toRadians(angle-90))));
+                            newNodes[(ox+ndx)+':'+(oy+ndy)] = { depth: 1, created:theTime };
                             nodes[(ox+ndx)+':'+(oy+ndy)] = { depth: 1, created:theTime };
                         }
                     }
                     
                 }
-                for(var i = 0; i < nearNodes.length; i++) { // Stress all nodes in area
-                    nodes[nearNodes[i]].depth++;
-                    if(nearNodes[i] == oCoords) { nodes[nearNodes[i]].depth++; } // Stress clicked node again
-                }
-                return nodes;
+                oNode.depth++; // Stress clicked node
+                newNodes[oCoords] = oNode;
+                return newNodes;
             },
             generateNodes: function(seed,nodes) {
                 var tap = [];

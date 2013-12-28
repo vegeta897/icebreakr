@@ -75,6 +75,8 @@ angular.module('Icebreakr.controllers', [])
                     $scope.userInit = true;
                     jQuery(mainHighCanvas).mousedown(onMouseDown);
                     jQuery(mainHighCanvas).mouseup(onMouseUp);
+                    fireRef.child('users').on('child_added', updateUsers);
+                    fireRef.child('users').on('child_changed', updateUsers);
                 });
             });
         };
@@ -156,7 +158,7 @@ angular.module('Icebreakr.controllers', [])
             var theTime = new Date().getTime();
             fireRef.child('nodes').once('value', function(snap) {
                 
-                var newNodes = gameUtility.tapNodes(snap.val(),x,y); // Tap dem nodes
+                var newNodes = gameUtility.tapNode(snap.val(),x,y); // Tap dat node
                 
                 fireRef.child('nodes').update(angular.copy(newNodes));
                 
@@ -223,6 +225,7 @@ angular.module('Icebreakr.controllers', [])
         
         // When a tap is added/changed
         var drawNode = function(snap) {
+            if(snap.val().depth > 30) { return; }
             var intensity = 0;
             if(localNodes.hasOwnProperty(snap.name())) {
                 intensity = snap.val().depth - localNodes[snap.name()].depth;
@@ -249,12 +252,30 @@ angular.module('Icebreakr.controllers', [])
             $timeout(function(){ alignCanvases(); }, 200); // Realign canvases
             canvasUtility.fillCanvas(mainContext,'1f2022'); // Clear canvas
         };
+
+        var sortArrayByProperty = function(arr, sortby, descending) {
+            if(arr[0].hasOwnProperty(sortby)) {
+                if(descending) {
+                    arr.sort(function(obj1, obj2) {return obj2[sortby] - obj1[sortby]})
+                } else {
+                    arr.sort(function(obj1, obj2) {return obj1[sortby] - obj2[sortby]})
+                }
+            }
+            return arr;
+        };
         
         var updateUsers = function(snap) {
             $timeout(function() { 
                 $scope.localUsers[snap.name()] = snap.val(); 
                 if(!$scope.user) { return; }
-                $scope.user = $scope.localUsers[$scope.user.id] 
+                $scope.user = $scope.localUsers[$scope.user.id];
+                $scope.scoreBoard = [];
+                for(var key in $scope.localUsers) {
+                    if($scope.localUsers.hasOwnProperty(key)) {
+                        $scope.scoreBoard.push($scope.localUsers[key])
+                    }
+                }
+                $scope.scoreBoard = sortArrayByProperty($scope.scoreBoard,'score',true);
             });
         };
         
@@ -262,8 +283,6 @@ angular.module('Icebreakr.controllers', [])
         fireRef.child('nodes').on('child_added', drawNode);
         fireRef.child('nodes').on('child_changed', drawNode);
         fireRef.child('nodes').on('child_removed', clearCanvas);
-        fireRef.child('users').on('child_added', updateUsers);
-        fireRef.child('users').on('child_changed', updateUsers);
         fireRef.child('meta/pings').on('child_added', drawPing);
         fireRef.child('meta/pings').on('child_removed', hidePing);
         
