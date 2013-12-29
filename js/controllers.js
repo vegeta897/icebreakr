@@ -3,7 +3,7 @@
 angular.module('Icebreakr.controllers', [])
 	.controller('Main', ['$scope', '$timeout', '$filter', 'localStorageService', 'colorUtility', 'canvasUtility', 'gameUtility', function($scope, $timeout, $filter, localStorageService, colorUtility, canvasUtility, gameUtility) {
         
-        $scope.version = 0.1;
+        $scope.version = 0.2;
         $scope.needUpdate = false;
         $scope.overPixel = ['-','-']; // Tracking your coordinates'
         $scope.authStatus = '';
@@ -13,12 +13,6 @@ angular.module('Icebreakr.controllers', [])
         var mainPixSize = 3, keyPressed = false, keyUpped = true, mouseDown,
             pinging = false, userID, fireUser, localNodes = {}, tutorialStep = 0;
         
-        // Authentication
-        $scope.authenticate = function() {
-            $scope.authStatus = 'logging';
-            auth.login('password', {email: $scope.loginEmail, password: $scope.loginPassword, rememberMe: true});
-        };
-        $scope.logOut = function() { auth.logout(); };
 
         // Create a reference to the pixel data for our canvas
         var fireRef = new Firebase('https://icebreakr.firebaseio.com/map1');
@@ -60,6 +54,14 @@ angular.module('Icebreakr.controllers', [])
                     });
                 });
 
+                // Authentication
+                $scope.authenticate = function() {
+                    $scope.authStatus = 'logging';
+                    auth.login('password', {email: $scope.loginEmail,
+                        password: $scope.loginPassword, rememberMe: true});
+                };
+                $scope.logOut = function() { auth.logout(); };
+                
             } else { $scope.needUpdate = true; }
         });
 
