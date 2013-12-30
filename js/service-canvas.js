@@ -27,7 +27,7 @@ angular.module('Icebreakr.canvas', [])
                 if(color != 'erase') { context.fillStyle = color.charAt(0) == 'r' ? color : '#' + color; }
                 context[method](0,0,1200,750);
             },
-            drawNode: function(context,x,y,nodes,intensity) {
+            drawNode: function(context,lowContext,x,y,nodes) {
                 
                 // TODO: Come up with a way to prevent intersecting lines being drawn
                 
@@ -37,37 +37,60 @@ angular.module('Icebreakr.canvas', [])
                     if(nearNodes[i] == x+':'+y) { continue; }
                     var nx = nearNodes[i].split(':')[0]*pixSize + pixOff, 
                         ny = nearNodes[i].split(':')[1]*pixSize + pixOff;
-                    
-                    // TODO: Don't modify opacity, use RGB // r:31 g:32 b:34
-                    // Remember to remove the intensity adjustment in the controller
-
-                    var opacity = (intensity + nodes[nearNodes[i]].depth) / 20; // Average between nodes
-                    var rd = Math.floor(224*opacity), // RGB deltas
-                        gd = Math.floor(223*opacity),
-                        bd = Math.floor(221*opacity);
-                    var lineWidth = 1 + intensity / 20;
-                    
+                    var flip = false;
+                    context.lineCap = 'round'; lowContext.lineCap = 'round';
                     // Always draw lines from left-to-right, top-to-bottom
                     var x1 = ox, x2 = nx, y1 = oy, y2 = ny;
-                    if((nx < ox) || (nx == ox && ny < oy)) { x1 = nx; x2 = ox; y1 = ny; y2 = oy; }
+                    if((nx < ox) || (nx == ox && ny < oy)) { flip = true; x1 = nx; x2 = ox; y1 = ny; y2 = oy; }
                     var dx = x2 - x1, dy = y2 - y1; // Get deltas
-                    var subnodes = Math.floor((dx*dx + dy*dy)/700); // Subnode count based on distance
-                    for(var k = 1; k > -1; k--) { // Draws shading, then actual crack
+                    var coord1 = flip ? nearNodes[i] : x+':'+y, coord2 = flip ? x+':'+y : nearNodes[i];
+                    var node1 = nodes[coord1], node2 = nodes[coord2];
+                    var opacity1 = node1.depth/10, opacity2 = node2.depth/10;
+                    var r1 = 31 + Math.floor(104*opacity1), rd = 31 + Math.floor(104*opacity2) - r1,
+                        g1 = 32 + Math.floor(103*opacity1), gd = 32 + Math.floor(103*opacity2) - g1,
+                        b1 = 34 + Math.floor(101*opacity1), bd = 34 + Math.floor(101*opacity2) - b1;
+                    var width1 = 1 + node1.depth/30, widthD = (1 + node2.depth/30) - width1;
+                    var alpha1 = node1.depth/10, alphaD = (node2.depth/10) - alpha1;
+                    var subnodes = 2 + Math.floor((dx*dx + dy*dy)/700); // Subnode count based on distance
+                    var variance = subnodes/3; // Variance based on subnode count
+                    for(var k = 3; k >= 0; k--) { // Erase shade, draw shade, erase crack, draw crack
+                        var drawContext = k < 2 ? context : lowContext;
+                        var offset = k < 2 ? 0 : 1;
+                        var lastCoord = [x1+offset, y1+offset], lastWidth = 0;
                         Math.seedrandom(x1*y1*x2*y2); // Generate same crack variations
-                        context.beginPath();
-                        context.moveTo(x1+k, y1+k);
                         for(var j = 0; j < subnodes; j++) {
-                            context.lineTo(
-                                k + x1 + (dx*(j+1))/(subnodes+1) + Math.random()*pixSize*0.7-pixSize*0.7/2,
-                                k + y1 + (dy*(j+1))/(subnodes+1) + Math.random()*pixSize*0.7-pixSize*0.7/2)
+                            drawContext.beginPath();
+                            drawContext.moveTo(lastCoord[0], lastCoord[1]);
+                            lastCoord = [
+                                offset + x1 + (dx*(j+1))/(subnodes+1) + Math.random()*variance-variance/2,
+                                offset + y1 + (dy*(j+1))/(subnodes+1) + Math.random()*variance-variance/2];
+                            drawContext.lineTo(lastCoord[0],lastCoord[1]);
+                            lastWidth = width1+widthD*j/subnodes;
+                            drawContext.lineWidth = lastWidth;
+                            drawContext.strokeStyle = 'rgba(31, 32, 34, 1)';
+                            switch(k) {
+                                case 2: drawContext.strokeStyle = 
+                                        'rgba(0, 0, 0, ' + (alpha1+alphaD*j/subnodes) + ')'; break;
+                                case 0: drawContext.strokeStyle = 'rgba(' +
+                                        Math.floor((r1+rd*j/(subnodes-1))) + ', ' +
+                                        Math.floor((g1+gd*j/(subnodes-1))) + ', ' +
+                                        Math.floor((b1+bd*j/(subnodes-1))) + ', 1)'; 
+                                    break;
+                            }
+                            drawContext.stroke();
                         }
-                        context.lineTo(x2+k, y2+k);
-                        context.lineWidth = lineWidth;
-                        var alpha = k == 1 ? opacity : 1;
-                        context.strokeStyle = 
-                            'rgba(' + (31+rd)*(1-k) + ', ' + (32+gd)*(1-k) + ', ' + (34+bd)*(1-k) + ', ' + 
-                            alpha + ')';
-                        context.stroke();
+                        drawContext.beginPath();
+                        drawContext.moveTo(lastCoord[0], lastCoord[1]);
+                        drawContext.lineTo(x2+offset, y2+offset);
+                        drawContext.lineWidth = width1 + widthD;
+                        drawContext.strokeStyle = 'rgba(31, 32, 34, 1)';
+                        switch(k) {
+                            case 2: drawContext.strokeStyle = 'rgba(0, 0, 0, ' + (alpha1 + alphaD) + ')'; break;
+                            case 0: drawContext.strokeStyle = 
+                                    'rgba(' + (r1+rd) + ', ' + (g1+gd) + ', ' + (b1+bd) + ', 1)'; 
+                                break;
+                        }
+                        drawContext.stroke();
                     }
                 }
             },

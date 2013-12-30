@@ -83,9 +83,11 @@ angular.module('Icebreakr.game', [])
                         oNode.created = nodes[oCoords].created;
                     }
                 }
-                oNode.grid = oCoords;
                 nodes[oCoords] = oNode;
                 ox = parseInt(oCoords.split(':')[0]); oy = parseInt(oCoords.split(':')[1]);
+                
+                // TODO: Add up depth of all nearby found nodes to determine breakage
+                
                 var nearNodes = getCircle(nodes,ox,oy,12);
                 console.log('found',nearNodes.length-1,'nodes nearby!');
                 var maxNew = 0, minNew = 0;

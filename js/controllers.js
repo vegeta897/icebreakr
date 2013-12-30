@@ -3,7 +3,7 @@
 angular.module('Icebreakr.controllers', [])
 	.controller('Main', ['$scope', '$timeout', '$filter', 'localStorageService', 'colorUtility', 'canvasUtility', 'gameUtility', function($scope, $timeout, $filter, localStorageService, colorUtility, canvasUtility, gameUtility) {
         
-        $scope.version = 0.21;
+        $scope.version = 0.22;
         $scope.needUpdate = false;
         $scope.overPixel = ['-','-']; // Tracking your coordinates'
         $scope.authStatus = '';
@@ -12,7 +12,6 @@ angular.module('Icebreakr.controllers', [])
         $scope.eventLog = [];
         var mainPixSize = 5, keyPressed = false, keyUpped = true, mouseDown,
             pinging = false, userID, fireUser, localNodes = {}, tutorialStep = 0;
-        
 
         // Create a reference to the pixel data for our canvas
         var fireRef = new Firebase('https://icebreakr.firebaseio.com/map1');
@@ -102,21 +101,24 @@ angular.module('Icebreakr.controllers', [])
         // Set up our canvas
         var mainCanvas = document.getElementById('mainCanvas');
         var mainContext = mainCanvas.getContext ? mainCanvas.getContext('2d') : null;
-        canvasUtility.fillCanvas(mainContext,'1f2022');
 
         // Prevent right-click on canvas
         jQuery('body').on('contextmenu', '#mainHighlightCanvas', function(e){ return false; });
 
         var mainPingCanvas = document.getElementById('mainPingCanvas'); // Main canvas pinging
         var mainHighCanvas = document.getElementById('mainHighlightCanvas'); // Main canvas highlighting
+        var mainLowCanvas = document.getElementById('lowlightCanvas'); // Main canvas lowlighting
         var mainPingContext = mainPingCanvas.getContext ? mainPingCanvas.getContext('2d') : null;
         var mainHighContext = mainHighCanvas.getContext ? mainHighCanvas.getContext('2d') : null;
+        var mainLowContext = mainLowCanvas.getContext ? mainLowCanvas.getContext('2d') : null;
         $timeout(function(){ alignCanvases(); }, 500); // Set its position to match the real canvas
+        canvasUtility.fillCanvas(mainLowContext,'1f2022');
 
         // Align canvas positions
         var alignCanvases = function() {
             jQuery(mainPingCanvas).offset(jQuery(mainCanvas).offset());
             jQuery(mainHighCanvas).offset(jQuery(mainCanvas).offset());
+            jQuery(mainLowCanvas).offset(jQuery(mainCanvas).offset());
         };
 
         // Keep track of if the mouse is up or down
@@ -169,20 +171,6 @@ angular.module('Icebreakr.controllers', [])
                 var newNodes = gameUtility.tapNode(snap.val(),x,y); // Tap dat node
 
                 fireRef.child('nodes').update(angular.copy(newNodes));
-
-//                if(snap.val().hasOwnProperty(x+':'+y)) { // Is there already a tap there?
-//                    tapped = snap.val();
-//                    tapped.tapCount++;
-//                    tapped.lastTap = theTime;
-//                    tapped.lastUser = $scope.user.id;
-//                } else { // Fresh tap
-//                    Math.seedrandom(); // Generate new seed
-//                    tapped = { tapCount: 1, firstTap: theTime, lastTap: theTime, 
-//                        seed: Math.random(),
-//                        firstUser: $scope.user.id, lastUser: $scope.user.id };
-//                    var nodes = gameUtility.generateNodes(snap.val().seed,1);
-//                    localNodes[snap.name()].nodes = nodes;
-//                }
             })
         };
 
@@ -234,9 +222,8 @@ angular.module('Icebreakr.controllers', [])
         // When a tap is added/changed
         var drawNode = function(snap) {
             var node = localNodes[snap.name()] = snap.val();
-            node.grid = snap.name(); // Add grid property
             var coords = snap.name().split(":");
-            canvasUtility.drawNode(mainContext,coords[0],coords[1],localNodes,node.depth);
+            canvasUtility.drawNode(mainContext,mainLowContext,coords[0],coords[1],localNodes);
             
             if(!$scope.localUsers.hasOwnProperty('4')) { return; } // If users haven't been fetched yet
             // TODO: Log stuff
