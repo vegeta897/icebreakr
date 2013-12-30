@@ -258,9 +258,10 @@ angular.module('Icebreakr.controllers', [])
         };
         // When the board is reset
         var clearCanvas = function(snapshot) {
+            localNodes = {}; // Delete all local nodes
             $scope.eventLog = [];
-            $timeout(function(){ alignCanvases(); }, 200); // Realign canvases
             canvasUtility.fillCanvas(mainContext,'1f2022'); // Clear canvas
+            $timeout(function(){ alignCanvases(); }, 200); // Realign canvases
         };
 
         var sortArrayByProperty = function(arr, sortby, descending) {

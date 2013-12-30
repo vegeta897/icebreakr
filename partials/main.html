@@ -1,4 +1,4 @@
-<div class="navbar navbar-fixed-top">
+<div class="navbar">
     <div class="container">
         <div class="navbar-header">
             <h1><a href="#"><span class="icebreakr-color">Icebreakr</span></a>  <small>v{{ version }}</small></h1>
@@ -48,7 +48,7 @@
         <div id="scoreboard" class="col-xs-2">
             <h2>Scoreboard</h2>
             <table class="table unstyled">
-                <tr ng-repeat="user in scoreBoard"><td>{{ $index+1 }}.</td><td>{{ user.nick }}</td><td class="text-right"><strong>{{ user.score }}</strong></td></tr>
+                <tr ng-repeat="user in scoreBoard | limitTo:10"><td>{{ $index+1 }}.</td><td>{{ user.nick }}</td><td class="text-right"><strong>{{ user.score }}</strong></td></tr>
             </table>
         </div>
         <div id="log" class="col-xs-4">
