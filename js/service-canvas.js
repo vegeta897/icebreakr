@@ -2,7 +2,7 @@
 
 angular.module('Icebreakr.canvas', [])
     .factory('canvasUtility', function(colorUtility) {
-        var pixSize = 3;
+        var pixSize = 5;
         var pixOff = pixSize/2;
         var getCircle = function(nodes,x,y,dist) { // Check circular area around x,y
             var neighbors = [];
@@ -33,32 +33,40 @@ angular.module('Icebreakr.canvas', [])
                 
                 var ox = x*pixSize+pixOff, oy = y*pixSize+pixOff;
                 var nearNodes = getCircle(nodes,x,y,12);
-                var opacity = intensity / 20;
                 for(var i = 0; i < nearNodes.length; i++) {
                     if(nearNodes[i] == x+':'+y) { continue; }
                     var nx = nearNodes[i].split(':')[0]*pixSize + pixOff, 
                         ny = nearNodes[i].split(':')[1]*pixSize + pixOff;
                     
-                    // TODO: Don't modify opacity, use RGB
+                    // TODO: Don't modify opacity, use RGB // r:31 g:32 b:34
                     // Remember to remove the intensity adjustment in the controller
 
+                    var opacity = (intensity + nodes[nearNodes[i]].depth) / 20; // Average between nodes
+                    var rd = Math.floor(224*opacity), // RGB deltas
+                        gd = Math.floor(223*opacity),
+                        bd = Math.floor(221*opacity);
+                    var lineWidth = 1 + intensity / 20;
+                    
                     // Always draw lines from left-to-right, top-to-bottom
                     var x1 = ox, x2 = nx, y1 = oy, y2 = ny;
                     if((nx < ox) || (nx == ox && ny < oy)) { x1 = nx; x2 = ox; y1 = ny; y2 = oy; }
                     var dx = x2 - x1, dy = y2 - y1; // Get deltas
-                    var subnodes = Math.floor((dx*dx + dy*dy)/400); // Subnode count based on distance
+                    var subnodes = Math.floor((dx*dx + dy*dy)/700); // Subnode count based on distance
                     for(var k = 1; k > -1; k--) { // Draws shading, then actual crack
                         Math.seedrandom(x1*y1*x2*y2); // Generate same crack variations
                         context.beginPath();
                         context.moveTo(x1+k, y1+k);
                         for(var j = 0; j < subnodes; j++) {
                             context.lineTo(
-                                k + x1 + (dx*(j+1))/(subnodes+1) + Math.random()*pixSize-pixSize/2,
-                                k + y1 + (dy*(j+1))/(subnodes+1) + Math.random()*pixSize-pixSize/2)
+                                k + x1 + (dx*(j+1))/(subnodes+1) + Math.random()*pixSize*0.7-pixSize*0.7/2,
+                                k + y1 + (dy*(j+1))/(subnodes+1) + Math.random()*pixSize*0.7-pixSize*0.7/2)
                         }
                         context.lineTo(x2+k, y2+k);
-                        context.strokeStyle = 'rgba('+255*(1-k)+', '+255*(1-k)+', '+255*(1-k)+', ' + 
-                            (opacity + opacity*0.5*k) + ')';
+                        context.lineWidth = lineWidth;
+                        var alpha = k == 1 ? opacity : 1;
+                        context.strokeStyle = 
+                            'rgba(' + (31+rd)*(1-k) + ', ' + (32+gd)*(1-k) + ', ' + (34+bd)*(1-k) + ', ' + 
+                            alpha + ')';
                         context.stroke();
                     }
                 }

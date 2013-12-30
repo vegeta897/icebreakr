@@ -144,7 +144,7 @@ angular.module('Icebreakr.game', [])
                     }
                     
                 }
-                oNode.depth++; // Stress clicked node
+                if(oNode.depth < 10) { oNode.depth++; } // Stress clicked node (max 10)
                 newNodes[oCoords] = oNode;
                 return newNodes;
             },

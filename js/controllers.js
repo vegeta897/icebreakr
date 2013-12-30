@@ -3,14 +3,14 @@
 angular.module('Icebreakr.controllers', [])
 	.controller('Main', ['$scope', '$timeout', '$filter', 'localStorageService', 'colorUtility', 'canvasUtility', 'gameUtility', function($scope, $timeout, $filter, localStorageService, colorUtility, canvasUtility, gameUtility) {
         
-        $scope.version = 0.2;
+        $scope.version = 0.21;
         $scope.needUpdate = false;
         $scope.overPixel = ['-','-']; // Tracking your coordinates'
         $scope.authStatus = '';
         $scope.helpText = '';
         $scope.localUsers = {};
         $scope.eventLog = [];
-        var mainPixSize = 3, keyPressed = false, keyUpped = true, mouseDown,
+        var mainPixSize = 5, keyPressed = false, keyUpped = true, mouseDown,
             pinging = false, userID, fireUser, localNodes = {}, tutorialStep = 0;
         
 
@@ -18,7 +18,7 @@ angular.module('Icebreakr.controllers', [])
         var fireRef = new Firebase('https://icebreakr.firebaseio.com/map1');
         
         fireRef.parent().child('version').once('value', function(snap) { // Check version number
-            if($scope.version == snap.val()) {
+            if($scope.version >= snap.val()) {
                 // Create a reference to the auth service for our data
                 var auth = new FirebaseSimpleLogin(fireRef, function(error, user) {
                     $timeout(function() {
@@ -62,7 +62,7 @@ angular.module('Icebreakr.controllers', [])
                 };
                 $scope.logOut = function() { auth.logout(); };
                 
-            } else { $scope.needUpdate = true; }
+            } else { $scope.$apply(function() { $scope.needUpdate = true; } ) }
         });
 
         var tutorial = function(action) {
@@ -154,9 +154,7 @@ angular.module('Icebreakr.controllers', [])
 
         var onMouseDown = function(e) {
             e.preventDefault();
-            var offset = jQuery(mainHighCanvas).offset(); // Get pixel location
-            var x = Math.floor((e.pageX - offset.left) / mainPixSize),
-                y = Math.floor((e.pageY - offset.top) / mainPixSize);
+            var x = $scope.overPixel[0], y = $scope.overPixel[1];
             fireUser.child('taps').once('value', function(snap) {
                 $scope.$apply(function() {
                     $scope.user.taps = snap.val() + 1;
@@ -235,21 +233,13 @@ angular.module('Icebreakr.controllers', [])
 
         // When a tap is added/changed
         var drawNode = function(snap) {
-            if(snap.val().depth > 20) { return; }
-            var intensity = 0;
-            if(localNodes.hasOwnProperty(snap.name())) {
-                intensity = snap.val().depth - localNodes[snap.name()].depth;
-
-            } else {
-                intensity = snap.val().depth;
-            }
             var node = localNodes[snap.name()] = snap.val();
             node.grid = snap.name(); // Add grid property
             var coords = snap.name().split(":");
-            canvasUtility.drawNode(mainContext,coords[0],coords[1],localNodes,intensity);
-            //    canvasUtility.drawPixel(mainContext,'erase',coords,[1,1]);
-            //    canvasUtility.drawPixel(mainContext,'rgba(255, 255, 255, '+node.depth/30+')',coords,[1,1]);
+            canvasUtility.drawNode(mainContext,coords[0],coords[1],localNodes,node.depth);
+            
             if(!$scope.localUsers.hasOwnProperty('4')) { return; } // If users haven't been fetched yet
+            // TODO: Log stuff
 //            $scope.eventLog.unshift({ user: $scope.localUsers[snap.val().lastUser].nick, action: 'tapped',
 //                coords: coords[0] + ' , ' + coords[1], time: snap.val().lastTap });
 //            if($scope.eventLog.length > 10) { // Keep the event log to 10 messages max

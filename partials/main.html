@@ -4,7 +4,7 @@
             <h1><a href="#"><span class="icebreakr-color">Icebreakr</span></a>  <small>v{{ version }}</small></h1>
         </div>
         <div class="navbar-collapse collapse">
-            <p ng-show="needUpdate" class="navbar-right text-warning">Your version is out of date! Please press shift+F5 or clear your browser cache.</p>
+            <p ng-show="needUpdate" class="navbar-right text-warning"><strong>Your version is out of date!</strong> Please press shift+F5 or clear your browser cache. <small>If that doesn't work, Vegeta probably locked the app.</small></p>
             <p class="navbar-right" ng-show="user">Welcome back, <strong class="text-info">{{ user.nick }}</strong> &mdash; <a href="#" ng-click="logOut()">Log out</a></p>
             <form ng-show="!user && authStatus" class="navbar-form navbar-right" data-login-form="{{ authStatus }}" id="loginForm" ng-disabled="authStatus=='logging'" ng-submit="authenticate()">
                 <div class="form-group">
