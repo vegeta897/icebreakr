@@ -34,7 +34,6 @@ angular.module('Icebreakr.canvas', [])
                 var ox = x*pixSize+pixOff, oy = y*pixSize+pixOff;
                 var nearNodes = getCircle(nodes,x,y,12);
                 for(var i = 0; i < nearNodes.length; i++) {
-                    if(nearNodes[i] == x+':'+y) { continue; }
                     var nx = nearNodes[i].split(':')[0]*pixSize + pixOff, 
                         ny = nearNodes[i].split(':')[1]*pixSize + pixOff;
                     var flip = false;
@@ -46,16 +45,16 @@ angular.module('Icebreakr.canvas', [])
                     var coord1 = flip ? nearNodes[i] : x+':'+y, coord2 = flip ? x+':'+y : nearNodes[i];
                     var node1 = nodes[coord1], node2 = nodes[coord2];
                     var opacity1 = node1.depth/10, opacity2 = node2.depth/10;
-                    var r1 = 31 + Math.floor(104*opacity1), rd = 31 + Math.floor(104*opacity2) - r1,
-                        g1 = 32 + Math.floor(103*opacity1), gd = 32 + Math.floor(103*opacity2) - g1,
-                        b1 = 34 + Math.floor(101*opacity1), bd = 34 + Math.floor(101*opacity2) - b1;
+                    var r1 = 38 + Math.floor(104*opacity1), rd = 38 + Math.floor(104*opacity2) - r1,
+                        g1 = 39 + Math.floor(103*opacity1), gd = 39 + Math.floor(103*opacity2) - g1,
+                        b1 = 41 + Math.floor(101*opacity1), bd = 41 + Math.floor(101*opacity2) - b1;
                     var width1 = 1 + node1.depth/30, widthD = (1 + node2.depth/30) - width1;
                     var alpha1 = node1.depth/10, alphaD = (node2.depth/10) - alpha1;
                     var subnodes = 2 + Math.floor((dx*dx + dy*dy)/700); // Subnode count based on distance
                     var variance = subnodes/3; // Variance based on subnode count
                     for(var k = 3; k >= 0; k--) { // Erase shade, draw shade, erase crack, draw crack
                         var drawContext = k < 2 ? context : lowContext;
-                        var offset = k < 2 ? 0 : 1;
+                        var offset = k < 2 ? 0 : -1;
                         var lastCoord = [x1+offset, y1+offset], lastWidth = 0;
                         Math.seedrandom(x1*y1*x2*y2); // Generate same crack variations
                         for(var j = 0; j < subnodes; j++) {
