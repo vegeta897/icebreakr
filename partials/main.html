@@ -4,7 +4,7 @@
             <h1><a href="#"><span class="icebreakr-color">Icebreakr</span></a>  <small>v{{ version }}</small></h1>
         </div>
         <div class="navbar-collapse collapse">
-            <p ng-show="needUpdate" class="navbar-right text-warning"><strong>Your version is out of date!</strong> Please press shift+F5 or clear your browser cache. <small>If that doesn't work, Vegeta probably locked the app.</small></p>
+            <p ng-show="needUpdate" class="navbar-right text-warning"><strong>Your version is out of date!</strong> Please press <strong>shift+F5</strong> or clear your browser cache. <small>If that doesn't work, Vegeta probably locked the app.</small></p>
             <p class="navbar-right" ng-show="user">Welcome back, <strong class="text-info">{{ user.nick }}</strong> &mdash; <a href="#" ng-click="logOut()">Log out</a></p>
             <form ng-show="!user && authStatus" class="navbar-form navbar-right" data-login-form="{{ authStatus }}" id="loginForm" ng-disabled="authStatus=='logging'" ng-submit="authenticate()">
                 <div class="form-group">
@@ -54,7 +54,8 @@
         </div>
         <div id="log" class="col-xs-4">
             <h2>Event Log</h2>
-            <em ng-hide="eventLog.length > 0" class="text-muted">Only shows events occurring after opening this page.</em>
+            <!-- <em ng-hide="eventLog.length > 0" class="text-muted">Only shows events occurring after opening this page.</em> -->
+            <em ng-hide="eventLog.length > 0" class="text-muted">This feature hasn't been implemented yet.</em>
             <ul class="list-unstyled">
                 <li ng-repeat="event in eventLog">
                     <span class="text-muted">{{ event.time | date:'H:mm:ss' }}</span>&emsp; 
