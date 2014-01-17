@@ -3,7 +3,7 @@
 angular.module('Icebreakr.controllers', [])
 .controller('Main', ['$scope', '$timeout', '$filter', 'localStorageService', 'colorUtility', 'canvasUtility', 'gameUtility', function($scope, $timeout, $filter, localStorageService, colorUtility, canvasUtility, gameUtility) {
     
-    $scope.version = 0.23;
+    $scope.version = 0.24;
     $scope.needUpdate = false;
     $scope.overPixel = ['-','-']; // Tracking your coordinates'
     $scope.authStatus = '';
@@ -288,13 +288,6 @@ angular.module('Icebreakr.controllers', [])
                 break;
         }
     };
-
-        
-        
-        
-        
-        
-        
         
     // Draw grid
 //        for(var ix = 0; ix < 400; ix++) {

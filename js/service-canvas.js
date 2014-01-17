@@ -16,13 +16,11 @@ angular.module('Icebreakr.canvas', [])
             context[method](0,0,1200,750);
         },
         drawNode: function(context,lowContext,x,y,nodes) {
-            
             var ox = x*pixSize+pixOff, oy = y*pixSize+pixOff;
-            var nearNodes = nodes[x+':'+y].connected ? nodes[x+':'+y].connected : [];
+            var nearNodes = nodes[x+':'+y].hasOwnProperty('connected') ? nodes[x+':'+y].connected : [];
             nearNodes.push(x+':'+y); // Include self in near nodes (to draw dot cracks)
             for(var i = 0; i < nearNodes.length; i++) {
-                // Skip this stroke if self node or a connected node isn't found
-                if(!nodes[nearNodes[i]] || nearNodes[i] == x+':'+y) { continue; } 
+                if(!nodes[nearNodes[i]]) { continue; } // Skip this stroke if a connected node isn't found
                 var nx = nearNodes[i].split(':')[0]*pixSize + pixOff, 
                     ny = nearNodes[i].split(':')[1]*pixSize + pixOff;
                 var flip = false;
@@ -59,7 +57,7 @@ angular.module('Icebreakr.canvas', [])
                         drawContext.shadowColor = 'rgba(0, 0, 0, 0)';
                         switch(k) {
                             case 1: drawContext.lineWidth += 0.5; break;
-                            case 3: drawContext.lineWidth = lastWidth*2 + 0.5; break;
+                            case 3: drawContext.lineWidth = lastWidth*2 + 1; break;
                             case 2: 
                                 drawContext.shadowColor = 'rgba(7, 8, 8, ' + (alpha1+alphaD*j/subnodes) + ')';
                                 drawContext.shadowBlur = lastWidth*2;
@@ -94,6 +92,10 @@ angular.module('Icebreakr.canvas', [])
                     drawContext.stroke();
                 }
             }
+//            context.beginPath();
+//            context.arc(ox, oy, 2, 0, 2 * Math.PI, false);
+//            context.fillStyle = 'red';
+//            context.fill();
         },
         drawPixel: function(context,color,coords,size) {
             var method = color == 'erase' ? 'clearRect' : 'fillRect';
