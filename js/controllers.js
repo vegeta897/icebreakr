@@ -3,8 +3,7 @@
 angular.module('Icebreakr.controllers', [])
 .controller('Main', ['$scope', '$timeout', '$filter', 'localStorageService', 'colorUtility', 'canvasUtility', 'gameUtility', function($scope, $timeout, $filter, localStorageService, colorUtility, canvasUtility, gameUtility) {
     
-    $scope.version = 0.24;
-    $scope.needUpdate = false;
+    $scope.version = 0.25; $scope.versionName = 'Petty Chief'; $scope.needUpdate = false;
     $scope.overPixel = ['-','-']; // Tracking your coordinates'
     $scope.authStatus = '';
     $scope.helpText = '';

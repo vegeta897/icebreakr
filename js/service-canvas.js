@@ -18,7 +18,6 @@ angular.module('Icebreakr.canvas', [])
         drawNode: function(context,lowContext,x,y,nodes) {
             var ox = x*pixSize+pixOff, oy = y*pixSize+pixOff;
             var nearNodes = nodes[x+':'+y].hasOwnProperty('connected') ? nodes[x+':'+y].connected : [];
-            nearNodes.push(x+':'+y); // Include self in near nodes (to draw dot cracks)
             for(var i = 0; i < nearNodes.length; i++) {
                 if(!nodes[nearNodes[i]]) { continue; } // Skip this stroke if a connected node isn't found
                 var nx = nearNodes[i].split(':')[0]*pixSize + pixOff, 
@@ -91,6 +90,15 @@ angular.module('Icebreakr.canvas', [])
                     }
                     drawContext.stroke();
                 }
+            }
+            if(nearNodes.length == 0) { // If a dot crack, draw a little circle
+                var rs = 38 + Math.floor(104*nodes[x+':'+y].depth/10),
+                    gs = 39 + Math.floor(103*nodes[x+':'+y].depth/10),
+                    bs = 41 + Math.floor(101*nodes[x+':'+y].depth/10);
+                context.beginPath();
+                context.arc(ox, oy, 1 + nodes[x+':'+y].depth/10, 0, 2 * Math.PI, false);
+                context.fillStyle = 'rgba(' + rs + ', ' + gs + ', ' + bs + ', ' + '1)';
+                context.fill();
             }
 //            context.beginPath();
 //            context.arc(ox, oy, 2, 0, 2 * Math.PI, false);

@@ -174,9 +174,21 @@ angular.module('Icebreakr.game', [])
                             ndx = Math.floor((dist * Math.cos(toRadians(angle-90))));
                             ndy = Math.floor((dist * Math.sin(toRadians(angle-90))));
                             newNode = (thisX + ndx) + ':' + (thisY + ndy);
-                            newNodes[newNode] = {
+                            newNodes[newNode] = nodes[newNode] = {
                                 depth: 1, created: theTime, connected: [thisNode]
                             };
+                            var nearNewExtNode = getCircle(nodes, (thisX + ndx), (thisY + ndy), 3);
+                            var nearestToNewExt = getNearest((thisX + ndx),(thisY + ndy),
+                                nearNewExtNode,nodes[newNode].connected);
+                            if(nearestToNewExt != '') {
+                                console.log('a node was found very close to the new node');
+                                newNodes[nearestToNewExt] = newNodes.hasOwnProperty(nearestToNewExt) ?
+                                    newNodes[nearestToNewExt] : nodes[nearestToNewExt];
+                                newNodes[nearestToNewExt].depth++;
+                                newNodes[nearestToNewExt].connected = newNodes[nearestToNewExt].hasOwnProperty('connected') ?
+                                    newNodes[nearestToNewExt].connected : [];
+                                newNodes[nearestToNewExt].connected.push(newNode);
+                            }
                         }
                         newNodes[thisNode].connected = newNodes[thisNode].connected ?
                             newNodes[thisNode].connected : [];
@@ -220,9 +232,21 @@ angular.module('Icebreakr.game', [])
                         ndx = Math.floor((dist * Math.cos(toRadians(newAngle-90))));
                         ndy = Math.floor((dist * Math.sin(toRadians(newAngle-90))));
                         newNode = (ox + ndx) + ':' + (oy + ndy);
-                        newNodes[newNode] = {
+                        newNodes[newNode] = nodes[newNode] = {
                             depth: 1, created: theTime, connected: [ox+':'+oy]
                         };
+                        var nearNewCreatedNode = getCircle(nodes, (thisX + ndx), (thisY + ndy), 3);
+                        var nearestToNew = getNearest((thisX + ndx),(thisY + ndy),
+                            nearNewCreatedNode,nodes[newNode].connected);
+                        if(nearestToNew != '') {
+                            console.log('a node was found very close to the new node');
+                            newNodes[nearestToNew] = newNodes.hasOwnProperty(nearestToNew) ? 
+                                newNodes[nearestToNew] : nodes[nearestToNew];
+                            newNodes[nearestToNew].depth++;
+                            newNodes[nearestToNew].connected = newNodes[nearestToNew].hasOwnProperty('connected') ?
+                                newNodes[nearestToNew].connected : [];
+                            newNodes[nearestToNew].connected.push(newNode);
+                        }
                     }
                     console.log('adding',newNode,'to connected nodes of',ox+':'+oy);
                     newNodes[ox+':'+oy].connected.push(newNode);
@@ -230,14 +254,15 @@ angular.module('Icebreakr.game', [])
             // If a node(s) is nearby but not on or next to clicked spot
             } else {
                 console.log('node(s) nearby');
-                var nearNodes = getCircle(nodes,ox,oy,6);
+                var reallyNearNodes = getCircle(nodes,ox,oy,4);
                 // Chance to create node on clicked spot based on how many nodes nearby
-                if(Math.random() > nearNodes.length / 4) {
+                if(Math.random() > reallyNearNodes.length / 4) {
                     console.log('creating new node on clicked spot');
                     newNodes[ox+':'+oy] = {
                         depth: 1, created: theTime, connected: []
                     };
                 }
+                var nearNodes = getCircle(nodes,ox,oy,6);
                 for(var n = 0; n < nearNodes.length; n++) {
                     var nnx = nearNodes[n].split(':')[0], nny = nearNodes[n].split(':')[1];
                     var nearNodeDist = (nnx - ox) * (nnx - ox) + (nny - oy) * (nny - oy);
@@ -251,6 +276,22 @@ angular.module('Icebreakr.game', [])
                             newNodes[nearNodes[n]].connected.push(ox+':'+oy);
                         }
                     }
+                    // Connect nearby nodes to others nearby based on how many already connected
+                    var connected = nodes[nearNodes[n]].hasOwnProperty('connected') ? 
+                        nodes[nearNodes[n]].connected.length : 0;
+                    var nearNearNode = getCircle(nodes,nnx,nny,6);
+                    for(var o = 0; o < nearNearNode.length; o++) {
+                        if(nearNodes[n] != nearNearNode[o] && Math.random() > connected/4 + 0.1) {
+                            newNodes[nearNearNode[o]] = nodes[nearNearNode[o]];
+                            newNodes[nearNearNode[o]].connected = newNodes[nearNearNode[o]].hasOwnProperty('connected') ?
+                                newNodes[nearNearNode[o]].connected : [];
+                            newNodes[nearNearNode[o]].connected.push(nearNodes[n]);
+                            newNodes[nearNodes[n]] = nodes[nearNodes[n]];
+                            newNodes[nearNodes[n]].connected = newNodes[nearNodes[n]].hasOwnProperty('connected') ?
+                                newNodes[nearNodes[n]].connected : [];
+                            newNodes[nearNodes[n]].connected.push(nearNearNode[o]);
+                        }
+                    }
                 }
             }
             for(var key in newNodes) { // Limit node depth to 10
@@ -259,20 +300,6 @@ angular.module('Icebreakr.game', [])
                 }
             }
             return newNodes;
-        },
-        generateNodes: function(seed,nodes) {
-            var tap = [];
-            Math.seedrandom(seed);
-            var lastAngle = Math.random() * 360;
-            for(var i = 0; i < 3; i++) {
-                var dist = randomRange(9 - i*3,12);
-                var angle = lastAngle + 90 + Math.random() * 40;
-                lastAngle = angle;
-                var dx = Math.round((dist * Math.cos(toRadians(angle)))/3);
-                var dy = Math.round((dist * Math.sin(toRadians(angle)))/3);
-                tap.push([dx,dy]);
-            }
-            return tap;
         },
         tutorial: function(step) {
             var text = '';
@@ -283,6 +310,9 @@ angular.module('Icebreakr.game', [])
                     break;
             }
             return text;
+        },
+        capitalize: function(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
         }
     }
 });

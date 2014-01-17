@@ -168,9 +168,6 @@ angular.module('Icebreakr.colors', [])
                 g: parseInt(result[2], 16),
                 b: parseInt(result[3], 16)
             } : null;
-        },
-        capitalize: function(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
         }
     }
 });
